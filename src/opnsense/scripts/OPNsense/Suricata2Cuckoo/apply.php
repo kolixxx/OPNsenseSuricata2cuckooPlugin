@@ -119,6 +119,20 @@ function patch_suricata_yaml_for_filestore($path)
     $src = file_get_contents($path);
     $orig = $src;
 
+    // Helper: compute indent for child keys under a YAML map key line.
+    $childIndentFor = function (string $keyLine): string {
+        if (preg_match('/^(\\s*)/', $keyLine, $m)) {
+            return $m[1] . "  ";
+        }
+        return "  ";
+    };
+
+    // Helper: determine list item indent under "outputs:" (indent of "- ").
+    $outputsListIndent = null;
+    if (preg_match('/^(\\s*)outputs:\\s*$\\R(\\s*)-\\s+/m', $src, $om)) {
+        $outputsListIndent = $om[2];
+    }
+
     // 1) Enable file-store output (handle both "- file-store:" and "file-store:")
     // Typical block:
     // - file-store:
@@ -133,9 +147,12 @@ function patch_suricata_yaml_for_filestore($path)
 
     // If file-store block exists but has no enabled line, insert enabled: yes after header
     if ($src === $before && preg_match('/^\\s*(?:-\\s*)?file-store:\\s*$/m', $src)) {
-        $src = preg_replace(
+        $src = preg_replace_callback(
             '/(^\\s*(?:-\\s*)?file-store:\\s*\\R)/m',
-            "$1  enabled: yes\n",
+            function ($m) use ($childIndentFor) {
+                $indent = $childIndentFor($m[1]);
+                return $m[1] . $indent . "enabled: yes\n";
+            },
             $src,
             1
         );
@@ -145,10 +162,12 @@ function patch_suricata_yaml_for_filestore($path)
     if (!preg_match('/^\\s*(?:-\\s*)?file-store:\\s*$/m', $src)) {
         if (preg_match('/^(\\s*)outputs:\\s*$/m', $src, $om)) {
             $o = $om[1];
+            $li = $outputsListIndent ?? ($o . "  ");
+            $ci = $li . "  ";
             $insert =
-                $o . "  - file-store:\n" .
-                $o . "    enabled: yes\n" .
-                $o . "    version: 2\n";
+                $li . "- file-store:\n" .
+                $ci . "enabled: yes\n" .
+                $ci . "version: 2\n";
             $src = preg_replace('/^(\\s*)outputs:\\s*$/m', "$0\n" . $insert, $src, 1);
         }
     }
@@ -172,13 +191,13 @@ function patch_suricata_yaml_for_filestore($path)
             $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)(^\\s+force-magic:\\s*).*$/m', '$1$2 yes', $typesBlock, 1);
             // if force-magic line missing, insert it
             if (!preg_match('/^\\s+force-magic:\\s*/m', $typesBlock)) {
-                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)/m', "$1  force-magic: yes\n", $typesBlock, 1);
+                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)/m', "$1" . $childIndent . "force-magic: yes\n", $typesBlock, 1);
             }
             // ensure force-hash has md5, sha256
             if (preg_match('/^\\s+force-hash:\\s*\\[(.*?)\\]\\s*$/m', $typesBlock)) {
-                $typesBlock = preg_replace('/^\\s+force-hash:\\s*\\[.*?\\]\\s*$/m', '  force-hash: [md5, sha256]', $typesBlock, 1);
+                $typesBlock = preg_replace('/^\\s+force-hash:\\s*\\[.*?\\]\\s*$/m', $childIndent . 'force-hash: [md5, sha256]', $typesBlock, 1);
             } else {
-                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R(?:^\\s+.*\\R)*)/m', "$1  force-hash: [md5, sha256]\n", $typesBlock, 1);
+                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R(?:^\\s+.*\\R)*)/m', "$1" . $childIndent . "force-hash: [md5, sha256]\n", $typesBlock, 1);
             }
         } else {
             // Insert new files type at top of types list
