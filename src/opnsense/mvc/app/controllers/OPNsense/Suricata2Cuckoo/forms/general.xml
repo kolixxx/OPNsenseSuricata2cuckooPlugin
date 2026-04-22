@@ -8,7 +8,7 @@
   <field>
     <id>general.Protocols</id>
     <label>Protocols</label>
-    <type>select_multiple</type>
+    <type>select</type>
     <help>Select one or more Suricata app-layer protocols to generate filestore rules for.</help>
   </field>
 
