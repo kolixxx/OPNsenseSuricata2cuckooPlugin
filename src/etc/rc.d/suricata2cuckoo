@@ -9,6 +9,8 @@
 name="suricata2cuckoo"
 rcvar="suricata2cuckoo_enable"
 
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 command="/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl"
 command_args="-c ${suricata2cuckoo_config:-/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf}"
 pidfile="/var/run/${name}.pid"

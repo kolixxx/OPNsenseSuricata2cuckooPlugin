@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 #
 # suricata2cuckoo.pl — daemon that watches Suricata filestore and submits
 # new files to Cuckoo Sandbox via REST API.
