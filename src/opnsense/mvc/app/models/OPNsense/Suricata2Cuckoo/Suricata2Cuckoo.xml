@@ -8,15 +8,10 @@
         <Required>Y</Required>
       </Enabled>
 
-      <Protocols type="OptionField">
-        <Multiple>Y</Multiple>
+      <!-- Comma-separated list: http or http,smtp -->
+      <Protocols type="TextField">
+        <Default>http</Default>
         <Required>Y</Required>
-        <OptionValues>
-          <http>HTTP</http>
-          <smtp>SMTP</smtp>
-          <ftp>FTP</ftp>
-          <smb>SMB</smb>
-        </OptionValues>
       </Protocols>
 
       <!-- Comma separated list, without dots: docx,pdf,exe,zip -->
@@ -48,13 +43,9 @@
         <Default>/var/log/suricata/filestore</Default>
         <Required>Y</Required>
       </FilestorePath>
-      <WatchMethod type="OptionField">
+      <WatchMethod type="TextField">
         <Default>polling</Default>
         <Required>Y</Required>
-        <OptionValues>
-          <polling>polling</polling>
-          <kqueue>kqueue</kqueue>
-        </OptionValues>
       </WatchMethod>
       <PollInterval type="IntegerField">
         <Default>5</Default>

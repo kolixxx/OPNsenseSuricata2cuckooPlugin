@@ -19,9 +19,12 @@ $(document).ready(function() {
   });
 
   $("#applyAct").click(function(){
+    $("#applyResult").addClass("hidden").text("");
+    $("#applyAct").prop("disabled", true).text("Applying…");
     saveFormToEndpoint("/api/suricata2cuckoo/settings/set",'frm_GeneralSettings', function(){
       ajaxCall(url="/api/suricata2cuckoo/service/apply", sendData={}, callback=function(data,status) {
         $("#applyResult").removeClass("hidden").text(JSON.stringify(data));
+        $("#applyAct").prop("disabled", false).text("Apply");
         ajaxCall(url="/api/suricata2cuckoo/service/status", sendData={}, callback=function(d,s) {
           if (d && d.status !== undefined) {
             $("#svcStatus").text(d.status);
