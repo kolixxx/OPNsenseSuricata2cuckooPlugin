@@ -31,6 +31,18 @@ function sh($cmd) {
     return [$rc, implode("\n", $output)];
 }
 
+function suricata_yaml_filestore_enabled_state($path)
+{
+    if (!is_readable($path)) {
+        return null;
+    }
+    $src = file_get_contents($path);
+    if (preg_match('/^\\s*(?:-\\s*)?file-store:\\s*\\R(?:^\\s+.*\\R)*?^\\s+enabled:\\s*(\\S+)\\s*$/im', $src, $m)) {
+        return strtolower(trim($m[1]));
+    }
+    return 'missing';
+}
+
 function ensure_dir($path, $mode) {
     if (!is_dir($path)) {
         @mkdir($path, $mode, true);
@@ -312,17 +324,25 @@ try {
     }
 
     // Restart IDS (this may regenerate suricata.yaml from config.xml)
-    sh('/usr/local/sbin/configctl ids restart');
+    [$rcIdsRestart, $outIdsRestart] = sh('/usr/local/sbin/configctl ids restart');
 
     // OPNsense IDS generator may not expose file-store/eve files toggles.
     // Patch generated suricata.yaml after IDS restart, then restart Suricata to load it.
     patch_suricata_yaml_for_filestore(SURICATA_YAML);
-    sh('/usr/sbin/service suricata restart');
+    $stateAfterPatch = suricata_yaml_filestore_enabled_state(SURICATA_YAML);
+    [$rcSuricataRestart, $outSuricataRestart] = sh('/usr/sbin/service suricata restart');
 
     // Restart service
-    sh('/usr/sbin/service suricata2cuckoo restart');
+    [$rcS2cRestart, $outS2cRestart] = sh('/usr/sbin/service suricata2cuckoo restart');
 
-    echo json_encode(['result' => 'ok']);
+    echo json_encode([
+        'result' => 'ok',
+        'ids_reload' => ['rc' => $rcIds, 'out' => $outIds],
+        'ids_restart' => ['rc' => $rcIdsRestart, 'out' => $outIdsRestart],
+        'suricata_yaml_file_store_enabled' => $stateAfterPatch,
+        'suricata_restart' => ['rc' => $rcSuricataRestart, 'out' => $outSuricataRestart],
+        'suricata2cuckoo_restart' => ['rc' => $rcS2cRestart, 'out' => $outS2cRestart],
+    ]);
     exit(0);
 } catch (\Throwable $e) {
     echo json_encode(['error' => $e->getMessage()]);
