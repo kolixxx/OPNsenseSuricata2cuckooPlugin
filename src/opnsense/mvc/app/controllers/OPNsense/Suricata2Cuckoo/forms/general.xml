@@ -8,8 +8,8 @@
   <field>
     <id>suricata2cuckoo.general.Protocols</id>
     <label>Protocols</label>
-    <type>select</type>
-    <help>Select one or more Suricata app-layer protocols to generate filestore rules for.</help>
+    <type>text</type>
+    <help>Comma-separated list of Suricata app-layer protocols. Example: http (or http,smtp). Supported: http,smtp,ftp,smb</help>
   </field>
 
   <field>
@@ -49,7 +49,8 @@
   <field>
     <id>suricata2cuckoo.general.WatchMethod</id>
     <label>Watch method</label>
-    <type>select</type>
+    <type>text</type>
+    <help>Set to polling (default) or kqueue (requires IO::KQueue).</help>
   </field>
   <field>
     <id>suricata2cuckoo.general.PollInterval</id>
