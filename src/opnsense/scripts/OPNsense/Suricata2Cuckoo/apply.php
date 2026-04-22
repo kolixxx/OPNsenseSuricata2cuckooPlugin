@@ -107,16 +107,39 @@ function patch_suricata_yaml_for_filestore($path)
     $src = file_get_contents($path);
     $orig = $src;
 
-    // 1) Enable file-store output
+    // 1) Enable file-store output (handle both "- file-store:" and "file-store:")
     // Typical block:
     // - file-store:
     //   version: 2
-    //   enabled: no
+    //   enabled: no|false|0
+    $before = $src;
     $src = preg_replace(
-        '/(^\\s*-\\s*file-store:\\s*\\R(?:^\\s+.*\\R)*?^\\s+enabled:\\s*)no\\b/m',
+        '/(^\\s*(?:-\\s*)?file-store:\\s*\\R(?:^\\s+.*\\R)*?^\\s+enabled:\\s*)(?:no|false|0)\\b/im',
         '$1yes',
         $src
     );
+
+    // If file-store block exists but has no enabled line, insert enabled: yes after header
+    if ($src === $before && preg_match('/^\\s*(?:-\\s*)?file-store:\\s*$/m', $src)) {
+        $src = preg_replace(
+            '/(^\\s*(?:-\\s*)?file-store:\\s*\\R)/m',
+            "$1  enabled: yes\n",
+            $src,
+            1
+        );
+    }
+
+    // If file-store output block is completely missing, add it under "outputs:"
+    if (!preg_match('/^\\s*(?:-\\s*)?file-store:\\s*$/m', $src)) {
+        if (preg_match('/^(\\s*)outputs:\\s*$/m', $src, $om)) {
+            $o = $om[1];
+            $insert =
+                $o . "  - file-store:\n" .
+                $o . "    enabled: yes\n" .
+                $o . "    version: 2\n";
+            $src = preg_replace('/^(\\s*)outputs:\\s*$/m', "$0\n" . $insert, $src, 1);
+        }
+    }
 
     // 2) Ensure eve-log "files" type is enabled with force-magic + force-hash
     // We patch the FIRST eve-log output block under "outputs:".
@@ -288,12 +311,13 @@ try {
         throw new \RuntimeException("ids reload failed: " . $outIds);
     }
 
-    // OPNsense IDS generator may not expose file-store/eve files toggles.
-    // Ensure Suricata has file-store output enabled to satisfy filestore rules.
-    patch_suricata_yaml_for_filestore(SURICATA_YAML);
-
-    // Restart IDS to apply suricata.yaml output changes (reload is not enough for outputs)
+    // Restart IDS (this may regenerate suricata.yaml from config.xml)
     sh('/usr/local/sbin/configctl ids restart');
+
+    // OPNsense IDS generator may not expose file-store/eve files toggles.
+    // Patch generated suricata.yaml after IDS restart, then restart Suricata to load it.
+    patch_suricata_yaml_for_filestore(SURICATA_YAML);
+    sh('/usr/sbin/service suricata restart');
 
     // Restart service
     sh('/usr/sbin/service suricata2cuckoo restart');
