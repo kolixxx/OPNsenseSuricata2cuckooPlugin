@@ -16,11 +16,8 @@
     <id>general.FileExtensions</id>
     <label>File extensions</label>
     <type>text</type>
-    <tokenize>true</tokenize>
     <help>Comma-separated list. You may type ".docx" or "docx". Example: doc,docx,pdf,zip,exe</help>
   </field>
-
-  <separator>IDS prerequisites</separator>
 
   <field>
     <id>general.EnableEveSyslog</id>
@@ -44,8 +41,6 @@
     <type>checkbox</type>
   </field>
 
-  <separator>suricata2cuckoo daemon</separator>
-
   <field>
     <id>general.FilestorePath</id>
     <label>Filestore path</label>
@@ -66,8 +61,6 @@
     <label>File settle time (seconds)</label>
     <type>text</type>
   </field>
-
-  <separator>Cuckoo Sandbox</separator>
 
   <field>
     <id>general.CuckooApiUrl</id>
