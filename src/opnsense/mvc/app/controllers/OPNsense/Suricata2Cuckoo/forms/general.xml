@@ -1,80 +1,80 @@
 <form>
   <field>
-    <id>general.Enabled</id>
+    <id>suricata2cuckoo.general.Enabled</id>
     <label>Enable Suricata2Cuckoo</label>
     <type>checkbox</type>
   </field>
 
   <field>
-    <id>general.Protocols</id>
+    <id>suricata2cuckoo.general.Protocols</id>
     <label>Protocols</label>
     <type>select</type>
     <help>Select one or more Suricata app-layer protocols to generate filestore rules for.</help>
   </field>
 
   <field>
-    <id>general.FileExtensions</id>
+    <id>suricata2cuckoo.general.FileExtensions</id>
     <label>File extensions</label>
     <type>text</type>
     <help>Comma-separated list. You may type ".docx" or "docx". Example: doc,docx,pdf,zip,exe</help>
   </field>
 
   <field>
-    <id>general.EnableEveSyslog</id>
+    <id>suricata2cuckoo.general.EnableEveSyslog</id>
     <label>Enable EVE syslog output</label>
     <type>checkbox</type>
   </field>
   <field>
-    <id>general.EnableEveHttp</id>
+    <id>suricata2cuckoo.general.EnableEveHttp</id>
     <label>Enable EVE HTTP logging</label>
     <type>checkbox</type>
   </field>
   <field>
-    <id>general.EnableEveFiles</id>
+    <id>suricata2cuckoo.general.EnableEveFiles</id>
     <label>Enable EVE fileinfo (files)</label>
     <type>checkbox</type>
     <help>Enables fileinfo events and forces magic/hash logging (md5 + sha256).</help>
   </field>
   <field>
-    <id>general.EnableFileStore</id>
+    <id>suricata2cuckoo.general.EnableFileStore</id>
     <label>Enable file-store output</label>
     <type>checkbox</type>
   </field>
 
   <field>
-    <id>general.FilestorePath</id>
+    <id>suricata2cuckoo.general.FilestorePath</id>
     <label>Filestore path</label>
     <type>text</type>
   </field>
   <field>
-    <id>general.WatchMethod</id>
+    <id>suricata2cuckoo.general.WatchMethod</id>
     <label>Watch method</label>
     <type>select</type>
   </field>
   <field>
-    <id>general.PollInterval</id>
+    <id>suricata2cuckoo.general.PollInterval</id>
     <label>Polling interval (seconds)</label>
     <type>text</type>
   </field>
   <field>
-    <id>general.FileSettleTime</id>
+    <id>suricata2cuckoo.general.FileSettleTime</id>
     <label>File settle time (seconds)</label>
     <type>text</type>
   </field>
 
   <field>
-    <id>general.CuckooApiUrl</id>
+    <id>suricata2cuckoo.general.CuckooApiUrl</id>
     <label>Cuckoo Sandbox URL API</label>
     <type>text</type>
   </field>
   <field>
-    <id>general.CuckooApiToken</id>
+    <id>suricata2cuckoo.general.CuckooApiToken</id>
     <label>Cuckoo Sandbox API Token</label>
     <type>password</type>
     <help>Optional. Stored in config.xml; not shown in logs.</help>
   </field>
   <field>
-    <id>general.CuckooGuest</id>
+    <id>suricata2cuckoo.general.CuckooGuest</id>
     <label>Cuckoo Sandbox Guest VM</label>
     <type>text</type>
   </field>
