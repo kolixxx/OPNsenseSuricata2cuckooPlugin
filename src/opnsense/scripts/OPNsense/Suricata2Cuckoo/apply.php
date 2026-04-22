@@ -19,6 +19,7 @@ const RULES_DIR = '/usr/local/etc/suricata/rules';
 const FILE_EXTRACT_RULES = '/usr/local/etc/suricata/rules/file-extract.rules';
 const FILESTORE_DIR = '/var/log/suricata/filestore';
 const SURICATA2CUCKOO_CONF = '/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf';
+const SURICATA_YAML = '/usr/local/etc/suricata/suricata.yaml';
 
 const SID_BASE = 1000001;
 const SID_MAX = 1000999;
@@ -96,6 +97,71 @@ function sx_set($parent, $name, $value) {
     $child = sx_child($parent, $name);
     $child[0] = (string)$value;
     return $child;
+}
+
+function patch_suricata_yaml_for_filestore($path)
+{
+    if (!is_readable($path)) {
+        throw new \RuntimeException("suricata.yaml not readable: {$path}");
+    }
+    $src = file_get_contents($path);
+    $orig = $src;
+
+    // 1) Enable file-store output
+    // Typical block:
+    // - file-store:
+    //   version: 2
+    //   enabled: no
+    $src = preg_replace(
+        '/(^\\s*-\\s*file-store:\\s*\\R(?:^\\s+.*\\R)*?^\\s+enabled:\\s*)no\\b/m',
+        '$1yes',
+        $src
+    );
+
+    // 2) Ensure eve-log "files" type is enabled with force-magic + force-hash
+    // We patch the FIRST eve-log output block under "outputs:".
+    // Find " - eve-log:" and inside its "types:" list ensure "- files:" exists and configured.
+    if (preg_match('/(^\\s*-\\s*eve-log:\\s*\\R(?:^\\s+.*\\R)*?^\\s+types:\\s*\\R)([\\s\\S]*?)(^\\s*-\\s+[a-z0-9_-]+:\\s*\\R)/mi', $src, $m)) {
+        $prefix = $m[1];
+        $typesBlock = $m[2];
+        $suffixStart = $m[3];
+        $listIndent = "  ";
+        if (preg_match('/^(\\s*)-\\s+/m', $typesBlock, $im)) {
+            $listIndent = $im[1];
+        }
+        $childIndent = $listIndent . "  ";
+
+        // if typesBlock already contains "- files:" keep it, but enforce settings
+        if (preg_match('/^\\s*-\\s*files:\\s*\\R/m', $typesBlock)) {
+            // ensure force-magic yes
+            $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)(^\\s+force-magic:\\s*).*$/m', '$1$2 yes', $typesBlock, 1);
+            // if force-magic line missing, insert it
+            if (!preg_match('/^\\s+force-magic:\\s*/m', $typesBlock)) {
+                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)/m', "$1  force-magic: yes\n", $typesBlock, 1);
+            }
+            // ensure force-hash has md5, sha256
+            if (preg_match('/^\\s+force-hash:\\s*\\[(.*?)\\]\\s*$/m', $typesBlock)) {
+                $typesBlock = preg_replace('/^\\s+force-hash:\\s*\\[.*?\\]\\s*$/m', '  force-hash: [md5, sha256]', $typesBlock, 1);
+            } else {
+                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R(?:^\\s+.*\\R)*)/m', "$1  force-hash: [md5, sha256]\n", $typesBlock, 1);
+            }
+        } else {
+            // Insert new files type at top of types list
+            $typesBlock =
+                $listIndent . "- files:\n" .
+                $childIndent . "force-magic: yes\n" .
+                $childIndent . "force-hash: [md5, sha256]\n" .
+                $typesBlock;
+        }
+
+        $src = str_replace($prefix . $m[2] . $suffixStart, $prefix . $typesBlock . $suffixStart, $src);
+    }
+
+    if ($src !== $orig) {
+        $tmp = $path . '.tmp';
+        file_put_contents($tmp, $src);
+        rename($tmp, $path);
+    }
 }
 
 try {
@@ -221,6 +287,13 @@ try {
     if ($rcIds !== 0) {
         throw new \RuntimeException("ids reload failed: " . $outIds);
     }
+
+    // OPNsense IDS generator may not expose file-store/eve files toggles.
+    // Ensure Suricata has file-store output enabled to satisfy filestore rules.
+    patch_suricata_yaml_for_filestore(SURICATA_YAML);
+
+    // Restart IDS to apply suricata.yaml output changes (reload is not enough for outputs)
+    sh('/usr/local/sbin/configctl ids restart');
 
     // Restart service
     sh('/usr/sbin/service suricata2cuckoo restart');
