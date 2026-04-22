@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# PROVIDE: suricata2cuckoo
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="suricata2cuckoo"
+rcvar="suricata2cuckoo_enable"
+
+command="/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl"
+command_args="-c ${suricata2cuckoo_config:-/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf}"
+pidfile="/var/run/${name}.pid"
+
+start_cmd="suricata2cuckoo_start"
+
+suricata2cuckoo_start()
+{
+  if [ ! -x "${command}" ]; then
+    echo "ERROR: ${command} not found or not executable"
+    return 1
+  fi
+  /usr/sbin/daemon -p "${pidfile}" "${command}" ${command_args}
+}
+
+load_rc_config $name
+run_rc_command "$1"
+

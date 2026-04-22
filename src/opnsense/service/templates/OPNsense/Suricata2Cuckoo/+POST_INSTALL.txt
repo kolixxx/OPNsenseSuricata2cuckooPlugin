@@ -1,0 +1,10 @@
+After installation:
+- Open Services -> Suricata2Cuckoo
+- Configure Cuckoo API URL / token / guest VM
+- Select protocols and file extensions
+- Ensure IDS is enabled and interfaces are selected in Services -> Intrusion Detection -> Settings
+- Click Apply in the Suricata2Cuckoo page
+
+Optional (kqueue):
+- Install IO::KQueue via CPAN if desired (see README)
+

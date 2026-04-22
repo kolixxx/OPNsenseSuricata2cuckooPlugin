@@ -1,0 +1,6 @@
+<menu>
+  <Services>
+    <Suricata2Cuckoo VisibleName="Suricata2Cuckoo" cssClass="fa fa-bug fa-fw" url="/ui/suricata2cuckoo"/>
+  </Services>
+</menu>
+

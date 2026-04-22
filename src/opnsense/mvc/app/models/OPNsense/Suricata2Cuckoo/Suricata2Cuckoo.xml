@@ -1,0 +1,86 @@
+<model>
+  <mount>//OPNsense/suricata2cuckoo</mount>
+  <description>Suricata2Cuckoo integration settings</description>
+  <items>
+    <general>
+      <Enabled type="BooleanField">
+        <Default>0</Default>
+        <Required>Y</Required>
+      </Enabled>
+
+      <Protocols type="OptionField">
+        <Multiple>Y</Multiple>
+        <Required>Y</Required>
+        <OptionValues>
+          <http>HTTP</http>
+          <smtp>SMTP</smtp>
+          <ftp>FTP</ftp>
+          <smb>SMB</smb>
+        </OptionValues>
+      </Protocols>
+
+      <!-- Comma separated list, without dots: docx,pdf,exe,zip -->
+      <FileExtensions type="TextField">
+        <Default>doc,docx,pdf,zip,exe</Default>
+        <Required>Y</Required>
+      </FileExtensions>
+
+      <!-- IDS prerequisites we will enforce on Apply -->
+      <EnableEveSyslog type="BooleanField">
+        <Default>1</Default>
+        <Required>Y</Required>
+      </EnableEveSyslog>
+      <EnableEveHttp type="BooleanField">
+        <Default>1</Default>
+        <Required>Y</Required>
+      </EnableEveHttp>
+      <EnableEveFiles type="BooleanField">
+        <Default>1</Default>
+        <Required>Y</Required>
+      </EnableEveFiles>
+      <EnableFileStore type="BooleanField">
+        <Default>1</Default>
+        <Required>Y</Required>
+      </EnableFileStore>
+
+      <!-- suricata2cuckoo.conf -->
+      <FilestorePath type="TextField">
+        <Default>/var/log/suricata/filestore</Default>
+        <Required>Y</Required>
+      </FilestorePath>
+      <WatchMethod type="OptionField">
+        <Default>polling</Default>
+        <Required>Y</Required>
+        <OptionValues>
+          <polling>polling</polling>
+          <kqueue>kqueue</kqueue>
+        </OptionValues>
+      </WatchMethod>
+      <PollInterval type="IntegerField">
+        <Default>5</Default>
+        <MinimumValue>1</MinimumValue>
+        <MaximumValue>3600</MaximumValue>
+        <Required>Y</Required>
+      </PollInterval>
+      <FileSettleTime type="IntegerField">
+        <Default>2</Default>
+        <MinimumValue>0</MinimumValue>
+        <MaximumValue>3600</MaximumValue>
+        <Required>Y</Required>
+      </FileSettleTime>
+
+      <CuckooApiUrl type="TextField">
+        <Default>http://127.0.0.1:8090</Default>
+        <Required>Y</Required>
+      </CuckooApiUrl>
+      <CuckooApiToken type="TextField">
+        <Default></Default>
+      </CuckooApiToken>
+      <CuckooGuest type="TextField">
+        <Default>Cuckoo1</Default>
+        <Required>Y</Required>
+      </CuckooGuest>
+    </general>
+  </items>
+</model>
+

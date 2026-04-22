@@ -1,0 +1,7 @@
+Suricata2Cuckoo integrates Suricata file-extraction (filestore) with a Cuckoo
+Sandbox instance.
+
+It generates Suricata rules for selected protocols and file extensions,
+ensures required IDS logging prerequisites, and runs a daemon to submit newly
+extracted files to Cuckoo via its REST API.
+

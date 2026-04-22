@@ -1,0 +1,13 @@
+# Local scratch / extracted artifacts
+_recheck_docs/
+_doc*_extract.txt
+_doc*_media/
+agent-tools/
+
+# Cursor / IDE
+.cursor/
+
+# OS
+Thumbs.db
+Desktop.ini
+
