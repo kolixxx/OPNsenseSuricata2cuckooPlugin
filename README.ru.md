@@ -85,3 +85,59 @@ perl -MIO::KQueue -e 'print "IO::KQueue available\n"'
 service suricata2cuckoo restart
 ```
 
+## Установка для разработки (без пакета, для тестов)
+
+Это dev-установка: файлы плагина копируются напрямую на OPNsense (только для разработки/тестов).
+
+### 1) Установить зависимости
+
+```sh
+pkg update
+pkg install -y git p5-libwww p5-HTTP-Message p5-XML-XPath p5-File-LibMagic
+```
+
+### 2) Склонировать репозиторий
+
+```sh
+cd /tmp
+rm -rf OPNsenseSuricata2cuckooPlugin
+git clone https://github.com/kolixxx/OPNsenseSuricata2cuckooPlugin.git
+cd OPNsenseSuricata2cuckooPlugin
+```
+
+### 3) Скопировать файлы в правильные места
+
+```sh
+# MVC + configd + templates + scripts
+cp -a src/opnsense/* /usr/local/opnsense/
+
+# /usr/local/etc (rc.d + suricata2cuckoo.pl)
+cp -a src/etc/* /usr/local/etc/
+
+chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
+chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
+```
+
+### 4) Перезапустить сервисы и сбросить кэши
+
+```sh
+service configd restart
+
+# кэш меню
+rm -f /tmp/opnsense_menu_cache.xml
+
+# кэш шаблонов MVC (безопасно)
+rm -f /usr/local/opnsense/mvc/app/cache/*.php
+```
+
+После этого выйдите/войдите в web UI (или сделайте hard refresh в браузере).
+
+### 5) Проверить, что файлы меню на месте
+
+```sh
+ls -la /usr/local/opnsense/mvc/app/models/OPNsense/Suricata2Cuckoo/Menu/Menu.xml
+ls -la /usr/local/opnsense/mvc/app/controllers/OPNsense/Suricata2Cuckoo/IndexController.php
+```
+
+Если файлы на месте, но меню всё равно не появилось — самый быстрый способ “обнулить” все кэши: один раз перезагрузить firewall.
+

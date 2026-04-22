@@ -85,3 +85,59 @@ If you want to restart manually:
 service suricata2cuckoo restart
 ```
 
+## Developer install (no package, for testing)
+
+This installs the plugin files directly onto an OPNsense host (use only for development/testing).
+
+### 1) Install prerequisites
+
+```sh
+pkg update
+pkg install -y git p5-libwww p5-HTTP-Message p5-XML-XPath p5-File-LibMagic
+```
+
+### 2) Clone this repository
+
+```sh
+cd /tmp
+rm -rf OPNsenseSuricata2cuckooPlugin
+git clone https://github.com/kolixxx/OPNsenseSuricata2cuckooPlugin.git
+cd OPNsenseSuricata2cuckooPlugin
+```
+
+### 3) Copy files into the correct locations
+
+```sh
+# MVC + configd + templates + scripts
+cp -a src/opnsense/* /usr/local/opnsense/
+
+# /usr/local/etc (rc.d + suricata2cuckoo.pl)
+cp -a src/etc/* /usr/local/etc/
+
+chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
+chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
+```
+
+### 4) Restart services and clear caches
+
+```sh
+service configd restart
+
+# menu cache
+rm -f /tmp/opnsense_menu_cache.xml
+
+# clear mvc view cache (safe)
+rm -f /usr/local/opnsense/mvc/app/cache/*.php
+```
+
+Now log out/in to the web UI (or hard refresh the browser).
+
+### 5) Verify the menu files exist
+
+```sh
+ls -la /usr/local/opnsense/mvc/app/models/OPNsense/Suricata2Cuckoo/Menu/Menu.xml
+ls -la /usr/local/opnsense/mvc/app/controllers/OPNsense/Suricata2Cuckoo/IndexController.php
+```
+
+If these files are present but the menu still does not show up, rebooting the firewall once is the quickest way to ensure all caches are cold.
+
