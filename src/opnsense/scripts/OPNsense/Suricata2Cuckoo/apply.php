@@ -44,6 +44,27 @@ function suricata_yaml_filestore_enabled_state($path)
     return 'missing';
 }
 
+function suricata_custom_yaml_outputs_state($path): array
+{
+    if (!is_readable($path)) {
+        return ['readable' => false];
+    }
+    $src = file_get_contents($path);
+    $out = ['readable' => true];
+
+    // file-store enabled?
+    if (preg_match('/^\\s*-\\s*file-store:\\s*\\R(?:^\\s+.*\\R)*?^\\s+enabled:\\s*(\\S+)\\s*$/im', $src, $m)) {
+        $out['file_store_enabled'] = strtolower(trim($m[1]));
+    } else {
+        $out['file_store_enabled'] = 'missing';
+    }
+
+    // eve-log files enabled? (presence of "- files:" under an eve-log types list)
+    $out['eve_files_present'] = preg_match('/^\\s*-\\s*eve-log:\\s*\\R[\\s\\S]*?^\\s*types:\\s*\\R[\\s\\S]*?^\\s*-\\s*files:\\s*$/im', $src) ? 'yes' : 'no';
+
+    return $out;
+}
+
 function write_suricata_custom_yaml($path, bool $enableFileStore, bool $enableEveFiles): void
 {
     // Use Suricata's supported include mechanism: suricata.yaml has `include: - custom.yaml`.
@@ -348,7 +369,8 @@ try {
     [$rcIdsRestart, $outIdsRestart] = sh('/usr/local/sbin/configctl ids restart');
 
     // Restart Suricata to pick up custom.yaml changes
-    $stateAfterPatch = suricata_yaml_filestore_enabled_state(SURICATA_YAML);
+    $yamlState = suricata_yaml_filestore_enabled_state(SURICATA_YAML);
+    $customState = suricata_custom_yaml_outputs_state(SURICATA_CUSTOM_YAML);
     [$rcSuricataRestart, $outSuricataRestart] = sh('/usr/sbin/service suricata restart');
 
     // Restart service
@@ -358,7 +380,8 @@ try {
         'result' => 'ok',
         'ids_reload' => ['rc' => $rcIds, 'out' => $outIds],
         'ids_restart' => ['rc' => $rcIdsRestart, 'out' => $outIdsRestart],
-        'suricata_yaml_file_store_enabled' => $stateAfterPatch,
+        'suricata_yaml_file_store_enabled' => $yamlState,
+        'suricata_custom_yaml' => $customState,
         'suricata_restart' => ['rc' => $rcSuricataRestart, 'out' => $outSuricataRestart],
         'suricata2cuckoo_restart' => ['rc' => $rcS2cRestart, 'out' => $outS2cRestart],
     ]);
