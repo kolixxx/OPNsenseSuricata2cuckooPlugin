@@ -20,6 +20,7 @@ const FILE_EXTRACT_RULES = '/usr/local/etc/suricata/rules/file-extract.rules';
 const FILESTORE_DIR = '/var/log/suricata/filestore';
 const SURICATA2CUCKOO_CONF = '/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf';
 const SURICATA_YAML = '/usr/local/etc/suricata/suricata.yaml';
+const SURICATA_CUSTOM_YAML = '/usr/local/etc/suricata/custom.yaml';
 
 const SID_BASE = 1000001;
 const SID_MAX = 1000999;
@@ -41,6 +42,35 @@ function suricata_yaml_filestore_enabled_state($path)
         return strtolower(trim($m[1]));
     }
     return 'missing';
+}
+
+function write_suricata_custom_yaml($path, bool $enableFileStore, bool $enableEveFiles): void
+{
+    // Use Suricata's supported include mechanism: suricata.yaml has `include: - custom.yaml`.
+    // Keep this file minimal and indentation-safe.
+    $lines = [];
+    $lines[] = "# Managed by OPNsense Suricata2Cuckoo plugin.";
+    $lines[] = "# This file is included from /usr/local/etc/suricata/suricata.yaml (include: - custom.yaml).";
+    $lines[] = "";
+    $lines[] = "outputs:";
+    if ($enableFileStore) {
+        $lines[] = "  - file-store:";
+        $lines[] = "      enabled: yes";
+        $lines[] = "      version: 2";
+    }
+    if ($enableEveFiles) {
+        $lines[] = "  - eve-log:";
+        $lines[] = "      types:";
+        $lines[] = "        - files:";
+        $lines[] = "            force-magic: yes";
+        $lines[] = "            force-hash: [md5, sha256]";
+    }
+    $lines[] = "";
+
+    $tmp = $path . '.tmp';
+    file_put_contents($tmp, implode("\n", $lines));
+    rename($tmp, $path);
+    @chmod($path, 0644);
 }
 
 function ensure_dir($path, $mode) {
@@ -172,9 +202,8 @@ function patch_suricata_yaml_for_filestore($path)
         }
     }
 
-    // NOTE: We intentionally do NOT patch eve-log/types here.
-    // The IDS generator in some OPNsense versions produces a complex eve-log block and
-    // naive text patching risks breaking YAML indentation (which can take the firewall offline).
+    // NOTE: This function is kept for backwards compatibility but should no longer be used.
+    // We now write /usr/local/etc/suricata/custom.yaml instead (safe include-based override).
 
     if ($src !== $orig) {
         $tmp = $path . '.tmp';
@@ -307,12 +336,13 @@ try {
         throw new \RuntimeException("ids reload failed: " . $outIds);
     }
 
-    // Restart IDS (this may regenerate suricata.yaml from config.xml)
+    // Write override file included by Suricata.
+    write_suricata_custom_yaml(SURICATA_CUSTOM_YAML, $enableFileStore, $enableEveFiles);
+
+    // Restart IDS (regenerates suricata.yaml; include reference stays intact)
     [$rcIdsRestart, $outIdsRestart] = sh('/usr/local/sbin/configctl ids restart');
 
-    // OPNsense IDS generator may not expose file-store/eve files toggles.
-    // Patch generated suricata.yaml after IDS restart, then restart Suricata to load it.
-    patch_suricata_yaml_for_filestore(SURICATA_YAML);
+    // Restart Suricata to pick up custom.yaml changes
     $stateAfterPatch = suricata_yaml_filestore_enabled_state(SURICATA_YAML);
     [$rcSuricataRestart, $outSuricataRestart] = sh('/usr/sbin/service suricata restart');
 
