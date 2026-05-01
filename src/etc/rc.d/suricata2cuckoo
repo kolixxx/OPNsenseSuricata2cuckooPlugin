@@ -11,19 +11,50 @@ rcvar="suricata2cuckoo_enable"
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-command="/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl"
-command_args="-c ${suricata2cuckoo_config:-/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf}"
+procname="/usr/local/bin/perl"
+script="/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl"
+config="${suricata2cuckoo_config:-/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf}"
 pidfile="/var/run/${name}.pid"
+logfile="/var/log/${name}.log"
 
 start_cmd="suricata2cuckoo_start"
+stop_cmd="suricata2cuckoo_stop"
+status_cmd="suricata2cuckoo_status"
 
 suricata2cuckoo_start()
 {
-  if [ ! -x "${command}" ]; then
-    echo "ERROR: ${command} not found or not executable"
+  if [ ! -x "${script}" ]; then
+    echo "ERROR: ${script} not found or not executable"
     return 1
   fi
-  /usr/sbin/daemon -p "${pidfile}" "${command}" ${command_args}
+  if [ ! -f "${config}" ]; then
+    echo "ERROR: config not found: ${config}"
+    return 1
+  fi
+
+  # Start via daemon(8) to get a stable pidfile for rc.d status/stop.
+  # Log to /var/log/suricata2cuckoo.log to surface startup errors.
+  /usr/sbin/daemon -p "${pidfile}" -o "${logfile}" -t "${name}" "${script}" -c "${config}"
+}
+
+suricata2cuckoo_stop()
+{
+  if [ -f "${pidfile}" ]; then
+    kill "$(cat "${pidfile}")" 2>/dev/null || true
+    rm -f "${pidfile}"
+  else
+    pkill -f "${script}" 2>/dev/null || true
+  fi
+}
+
+suricata2cuckoo_status()
+{
+  if [ -f "${pidfile}" ] && kill -0 "$(cat "${pidfile}")" 2>/dev/null; then
+    echo "${name} is running as pid $(cat "${pidfile}")."
+    return 0
+  fi
+  echo "${name} is not running."
+  return 1
 }
 
 load_rc_config $name
