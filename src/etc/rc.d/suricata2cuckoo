@@ -34,6 +34,7 @@ suricata2cuckoo_start()
 
   # Start via daemon(8) to get a stable pidfile for rc.d status/stop.
   # Log to /var/log/suricata2cuckoo.log to surface startup errors.
+  # Do NOT use -f (foreground), otherwise daemon may not create pidfile.
   /usr/sbin/daemon -p "${pidfile}" -o "${logfile}" -t "${name}" "${script}" -c "${config}"
 }
 
@@ -51,6 +52,11 @@ suricata2cuckoo_status()
 {
   if [ -f "${pidfile}" ] && kill -0 "$(cat "${pidfile}")" 2>/dev/null; then
     echo "${name} is running as pid $(cat "${pidfile}")."
+    return 0
+  fi
+  # Fallback: if pidfile is missing, try matching the perl command line.
+  if pgrep -f "${script} -c ${config}" >/dev/null 2>&1; then
+    echo "${name} is running (pidfile missing)."
     return 0
   fi
   echo "${name} is not running."
