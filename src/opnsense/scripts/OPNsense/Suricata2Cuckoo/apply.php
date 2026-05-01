@@ -49,6 +49,11 @@ function write_suricata_custom_yaml($path, bool $enableFileStore, bool $enableEv
     // Use Suricata's supported include mechanism: suricata.yaml has `include: - custom.yaml`.
     // Keep this file minimal and indentation-safe.
     $lines = [];
+    // Suricata expects included YAML files to be standalone YAML documents.
+    // Without these headers Suricata fails with:
+    // "The configuration file must begin with the following two lines: %YAML 1.1 and ---"
+    $lines[] = "%YAML 1.1";
+    $lines[] = "---";
     $lines[] = "# Managed by OPNsense Suricata2Cuckoo plugin.";
     $lines[] = "# This file is included from /usr/local/etc/suricata/suricata.yaml (include: - custom.yaml).";
     $lines[] = "";
