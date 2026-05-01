@@ -172,44 +172,9 @@ function patch_suricata_yaml_for_filestore($path)
         }
     }
 
-    // 2) Ensure eve-log "files" type is enabled with force-magic + force-hash
-    // We patch the FIRST eve-log output block under "outputs:".
-    // Find " - eve-log:" and inside its "types:" list ensure "- files:" exists and configured.
-    if (preg_match('/(^\\s*-\\s*eve-log:\\s*\\R(?:^\\s+.*\\R)*?^\\s+types:\\s*\\R)([\\s\\S]*?)(^\\s*-\\s+[a-z0-9_-]+:\\s*\\R)/mi', $src, $m)) {
-        $prefix = $m[1];
-        $typesBlock = $m[2];
-        $suffixStart = $m[3];
-        $listIndent = "  ";
-        if (preg_match('/^(\\s*)-\\s+/m', $typesBlock, $im)) {
-            $listIndent = $im[1];
-        }
-        $childIndent = $listIndent . "  ";
-
-        // if typesBlock already contains "- files:" keep it, but enforce settings
-        if (preg_match('/^\\s*-\\s*files:\\s*\\R/m', $typesBlock)) {
-            // ensure force-magic yes
-            $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)(^\\s+force-magic:\\s*).*$/m', '$1$2 yes', $typesBlock, 1);
-            // if force-magic line missing, insert it
-            if (!preg_match('/^\\s+force-magic:\\s*/m', $typesBlock)) {
-                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R)/m', "$1" . $childIndent . "force-magic: yes\n", $typesBlock, 1);
-            }
-            // ensure force-hash has md5, sha256
-            if (preg_match('/^\\s+force-hash:\\s*\\[(.*?)\\]\\s*$/m', $typesBlock)) {
-                $typesBlock = preg_replace('/^\\s+force-hash:\\s*\\[.*?\\]\\s*$/m', $childIndent . 'force-hash: [md5, sha256]', $typesBlock, 1);
-            } else {
-                $typesBlock = preg_replace('/(^\\s*-\\s*files:\\s*\\R(?:^\\s+.*\\R)*)/m', "$1" . $childIndent . "force-hash: [md5, sha256]\n", $typesBlock, 1);
-            }
-        } else {
-            // Insert new files type at top of types list
-            $typesBlock =
-                $listIndent . "- files:\n" .
-                $childIndent . "force-magic: yes\n" .
-                $childIndent . "force-hash: [md5, sha256]\n" .
-                $typesBlock;
-        }
-
-        $src = str_replace($prefix . $m[2] . $suffixStart, $prefix . $typesBlock . $suffixStart, $src);
-    }
+    // NOTE: We intentionally do NOT patch eve-log/types here.
+    // The IDS generator in some OPNsense versions produces a complex eve-log block and
+    // naive text patching risks breaking YAML indentation (which can take the firewall offline).
 
     if ($src !== $orig) {
         $tmp = $path . '.tmp';
