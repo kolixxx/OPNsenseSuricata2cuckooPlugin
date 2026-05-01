@@ -368,7 +368,12 @@ try {
     // Restart IDS (regenerates suricata.yaml; include reference stays intact)
     [$rcIdsRestart, $outIdsRestart] = sh('/usr/local/sbin/configctl ids restart');
 
-    // Restart Suricata to pick up custom.yaml changes
+    // Ensure file-store is enabled early enough (before rule load).
+    // custom.yaml include is near the end of suricata.yaml on some versions, which is too late
+    // to satisfy filestore rule prerequisites during rule parsing.
+    patch_suricata_yaml_for_filestore(SURICATA_YAML);
+
+    // Restart Suricata to pick up changes
     $yamlState = suricata_yaml_filestore_enabled_state(SURICATA_YAML);
     $customState = suricata_custom_yaml_outputs_state(SURICATA_CUSTOM_YAML);
     [$rcSuricataRestart, $outSuricataRestart] = sh('/usr/sbin/service suricata restart');
