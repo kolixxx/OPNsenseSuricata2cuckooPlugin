@@ -38,6 +38,10 @@ What “Apply” does:
 - Runs `configctl ids reload` (reload IDS rules)
 - Restarts the `suricata2cuckoo` service
 
+Important:
+- If you change anything under **Services → Intrusion Detection** and click **Apply** there, run **Apply** once in **Services → Suricata2Cuckoo** afterwards.
+  This ensures the plugin prerequisites (especially `file-store` for filestore rules) are re-applied reliably.
+
 ### Verify it works
 
 1. Generate traffic that contains a file (HTTP is the easiest)
