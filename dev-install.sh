@@ -57,6 +57,9 @@ echo "Rendering /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf from templat
 if [ -x /usr/local/sbin/configctl ]; then
   if /usr/local/sbin/configctl template reload OPNsense/Suricata2Cuckoo; then
     echo "Template OK." >&2
+    if [ ! -s /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf ]; then
+      echo "WARNING: suricata2cuckoo.conf missing or empty after template reload." >&2
+    fi
   else
     echo "WARNING: template reload failed — open Services -> Suricata2Cuckoo, enable plugin, Save + Apply once." >&2
   fi

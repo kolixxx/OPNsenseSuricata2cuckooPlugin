@@ -138,6 +138,7 @@ sh /root/dev-install.sh
 ```
 
 Notes:
+- A lone **`ERR`** line right after `Rendering … suricata2cuckoo.conf` is often **configd** stderr noise (or another template warning), not necessarily a failure of this step. If **`Template OK`** appears and `/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf` exists, you are fine. For details: `opnsense-log configd` or `/var/log/configd/latest.log`.
 - The script clones/updates the repo under `/root/OPNsenseSuricata2cuckooPlugin` (not `/tmp`, because `/tmp` may be cleared on reboot).
 - **What gets installed:** whatever `git pull` brings from `REPO_URL` (default `kolixxx/OPNsenseSuricata2cuckooPlugin` on GitHub), not files on your desktop until they are **pushed** there (or set `REPO_URL` to your fork). The script prints `Using plugin git commit: …` so you can verify the revision on the firewall.
 - After copying files it runs `configctl template reload OPNsense/Suricata2Cuckoo` so `suricata2cuckoo.conf` exists (if that fails, open the plugin in the GUI once and click **Apply** with the plugin enabled).
