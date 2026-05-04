@@ -6,7 +6,7 @@
  *
  * - Generates /usr/local/etc/suricata/rules/file-extract.rules
  * - Ensures file-extract.rules is enabled in OPNsense IDS files list
- * - Enables or disables IDS prerequisites to match the four plugin checkboxes (Apply mirrors IDS settings)
+ * - Mirrors IDS fileinfo + file-store flags from the plugin; EVE syslog and EVE HTTP must be set in IDS → Administration
  * - Reloads IDS rules (configctl ids reload)
  * - Restarts suricata2cuckoo service
  */
@@ -421,18 +421,11 @@ try {
     // Enable IDS prerequisites (minimal subset, matching your config.xml structure)
     $idsGeneral = sx_child($ids, 'general');
 
-    $enableEveSyslog = ((string)($gen->EnableEveSyslog ?? '1')) === '1';
-    $enableEveHttp = ((string)($gen->EnableEveHttp ?? '1')) === '1';
     $enableEveFiles = ((string)($gen->EnableEveFiles ?? '1')) === '1';
     $enableFileStore = ((string)($gen->EnableFileStore ?? '1')) === '1';
 
-    // Mirror plugin toggles into IDS (Intrusion Detection) so the main IDS UI stays consistent after Apply.
-    sx_set($idsGeneral, 'syslog_eve', $enableEveSyslog ? '1' : '0');
-
+    // EVE syslog + EVE HTTP: configure only under Services → Intrusion Detection → Administration (not mirrored here).
     $eveLog = sx_child($idsGeneral, 'eveLog');
-    $eveHttp = sx_child($eveLog, 'http');
-    sx_set($eveHttp, 'enable', $enableEveHttp ? '1' : '0');
-
     $eveFiles = sx_child($eveLog, 'files');
     if ($enableEveFiles) {
         sx_set($eveFiles, 'enable', '1');

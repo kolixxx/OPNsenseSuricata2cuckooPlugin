@@ -3,7 +3,7 @@
 Этот репозиторий содержит плагин для OPNsense, который:
 
 - Генерирует правила Suricata для file-extraction (`file-extract.rules`) по выбранным протоколам и типам файлов
-- Включает необходимые prerequisites в IDS (EVE syslog + EVE HTTP + EVE files + file-store)
+- Переносит в IDS из плагина только **EVE fileinfo (files)** и **file-store**; **EVE syslog** и **EVE HTTP** нужно включить вручную в **IDS → Administration**
 - Запускает демон `suricata2cuckoo`, который отправляет извлечённые файлы в Cuckoo Sandbox через REST API
 
 ## Установка
@@ -20,6 +20,11 @@
    - Выберите **Interfaces** (обязательно)
    - Нажмите **Apply**
 
+2b. Логирование IDS (вручную, нужно для типичного HTTP/файлов)
+   - Откройте **Services → Intrusion Detection → Administration**
+   - В разделе **Logging** включите **Enable eve syslog output** и **Enable eve HTTP logging**
+   - Нажмите **Apply** на странице IDS
+
 3. Настройте Suricata2Cuckoo
    - Откройте **Services → Suricata2Cuckoo**
    - Включите **Enable Suricata2Cuckoo**
@@ -35,7 +40,7 @@
 - Рендерит `/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf` из шаблона OPNsense (`configctl template reload OPNsense/Suricata2Cuckoo`)
 - Генерирует `/usr/local/etc/suricata/rules/file-extract.rules`
 - Убеждается, что `file-extract.rules` включён в IDS
-- Включает необходимые prerequisites IDS (EVE syslog + EVE HTTP + EVE files + file-store)
+- Записывает в IDS только **EVE fileinfo** и **file-store** из плагина (syslog и HTTP — шаг 2b выше)
 - Выполняет `configctl ids reload` (перезагрузка правил IDS)
 - Перезапускает сервис `suricata2cuckoo`
 
@@ -95,6 +100,29 @@ service suricata2cuckoo restart
 
 - **`ERROR: config not found: …/suricata2cuckoo.conf`** — конфиг не создаётся «сам по себе»: его пишет шаблон при успешном **Apply** в **Services → Suricata2Cuckoo** (плагин должен быть **включён**). Вручную: `configctl template reload OPNsense/Suricata2Cuckoo`. Скрипт `dev-install.sh` после установки пытается выполнить этот reload автоматически.
 - **Пустой `/var/log/suricata/filestore/`** — нормально, пока не было трафика с файлами, попадающими под ваши правила/расширения и пока Suricata не извлекла ни одного файла.
+
+## Диагностика `suricata2cuckoo` (терминал)
+
+На firewall под **root**:
+
+```sh
+sysrc suricata2cuckoo_enable
+service suricata2cuckoo status
+ls -la /usr/local/etc/rc.d/suricata2cuckoo /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf
+tail -n 80 /var/log/suricata2cuckoo.log
+ls -la /var/run/suricata2cuckoo.pid 2>/dev/null; pgrep -af suricata2cuckoo
+ls -la /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+/usr/local/sbin/configctl suricata2cuckoo apply
+perl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
+```
+
+Запуск в переднем плане (пока не остановите Ctrl+C — видны ошибки Perl в терминале):
+
+```sh
+/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf
+```
+
+Если `configctl … apply` падает: после копирования `actions_suricata2cuckoo.conf` сделайте `service configd restart` и проверьте `chmod 0755` на `apply.php`.
 
 ## Установка для разработки (без пакета, для тестов)
 

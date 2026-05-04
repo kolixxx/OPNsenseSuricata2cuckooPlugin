@@ -154,22 +154,28 @@ $(document).ready(function() {
 });
 </script>
 
+<div class="alert alert-warning" style="margin-bottom:12px;">
+  <strong>{{ lang._('Required manual step in IDS') }}</strong>
+  <p style="margin:8px 0 0 0;">
+    {{ lang._('Open Services → Intrusion Detection → Administration. In the Logging section, enable «Enable eve syslog output» and «Enable eve HTTP logging», then press Apply on that IDS page. This plugin does not change those two options; without them, Suricata may not log HTTP/file metadata the way you expect.') }}
+  </p>
+</div>
+
 <div class="alert alert-info">
   <strong>Status:</strong> <span id="svcStatus">loading…</span>
   <div class="help-block">
     {{ lang._('Apply generates') }} <code>/usr/local/etc/suricata/rules/file-extract.rules</code>,
-    {{ lang._('writes the four IDS prerequisite flags from this form into Intrusion Detection, reloads IDS rules, and restarts Suricata and this service.') }}
+    {{ lang._('mirrors only the two IDS options below (EVE fileinfo + file-store) into Intrusion Detection, reloads IDS rules, and restarts Suricata and this service.') }}
   </div>
   <div class="help-block">
     <strong>{{ lang._('Minimum for correct file extraction → Cuckoo') }}</strong>
     <ul style="margin-top:0.5em; margin-bottom:0; padding-left:1.2em;">
+      <li>{{ lang._('Complete the yellow IDS Administration step above (syslog EVE + HTTP), then return here.') }}</li>
       <li>{{ lang._('IDS: Suricata enabled and running on the interface(s) where traffic is inspected.') }}</li>
       <li>{{ lang._('For IPS (inline blocking), set Capture mode to Netmap or Divert under Services → Intrusion Detection → Settings (not PCAP-only IDS).') }}</li>
-      <li>{{ lang._('Keep enabled: "Enable file-store output" and "Enable EVE fileinfo (files)" — the daemon only uploads what Suricata writes under the filestore path.') }}</li>
-      <li>{{ lang._('"EVE HTTP logging" is recommended when you expect HTTP downloads; "EVE syslog output" is optional (remote logging).') }}</li>
+      <li>{{ lang._('Keep enabled on this page: "Enable file-store output" and "Enable EVE fileinfo (files)" — Apply writes these into IDS; the daemon only uploads what Suricata writes under the filestore path.') }}</li>
       <li>{{ lang._('Set Protocols and File extensions to match your traffic, then Apply. If you change IDS settings elsewhere, open this page and Apply once more.') }}</li>
       <li>{{ lang._('Daemon log (startup/errors/submissions) is written to /var/log/suricata2cuckoo.log — not the IDS log viewer.') }}</li>
-      <li>{{ lang._('In IDS, the checkbox directly under "Enable eve HTTP logging" is usually "Eve HTTP extended logging" — the plugin does not toggle that. The four prerequisite checkboxes on this page are what Apply mirrors into IDS (syslog EVE, HTTP, fileinfo/files, file-store) when those nodes exist in config.') }}</li>
       <li>{{ lang._('Under filestore, Suricata only creates subfolders (e.g. two hex levels) after a file is actually extracted — an empty directory until matching traffic exists.') }}</li>
     </ul>
   </div>

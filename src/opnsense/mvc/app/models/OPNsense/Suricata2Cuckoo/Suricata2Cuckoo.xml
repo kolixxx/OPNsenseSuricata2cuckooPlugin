@@ -20,15 +20,7 @@
         <Required>Y</Required>
       </FileExtensions>
 
-      <!-- IDS prerequisites we will enforce on Apply -->
-      <EnableEveSyslog type="BooleanField">
-        <Default>1</Default>
-        <Required>Y</Required>
-      </EnableEveSyslog>
-      <EnableEveHttp type="BooleanField">
-        <Default>1</Default>
-        <Required>Y</Required>
-      </EnableEveHttp>
+      <!-- IDS prerequisites mirrored on Apply (EVE syslog + HTTP: set manually under IDS → Administration) -->
       <EnableEveFiles type="BooleanField">
         <Default>1</Default>
         <Required>Y</Required>

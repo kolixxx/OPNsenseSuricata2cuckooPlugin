@@ -3,7 +3,7 @@
 This repository contains an OPNsense plugin that:
 
 - Generates Suricata file-extraction rules (`file-extract.rules`) for selected protocols and file extensions
-- Ensures required IDS prerequisites (EVE syslog + EVE HTTP + EVE files + file-store)
+- Lets you mirror **EVE fileinfo** and **file-store** into IDS from the plugin; **EVE syslog** and **EVE HTTP** must be enabled manually under **IDS → Administration**
 - Runs `suricata2cuckoo` daemon to submit extracted files to Cuckoo Sandbox via REST API
 
 ## Installation
@@ -20,6 +20,11 @@ This repository contains an OPNsense plugin that:
    - Select **Interfaces** (required)
    - Click **Apply**
 
+2b. IDS logging (manual, required for typical HTTP/file extraction)
+   - Open **Services → Intrusion Detection → Administration**
+   - Under **Logging**, enable **Enable eve syslog output** and **Enable eve HTTP logging**
+   - Click **Apply** on the IDS page
+
 3. Configure Suricata2Cuckoo
    - Open **Services → Suricata2Cuckoo**
    - Set **Enable Suricata2Cuckoo** = ON
@@ -35,7 +40,7 @@ What “Apply” does:
 - Renders `/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf` from the OPNsense template (`configctl template reload OPNsense/Suricata2Cuckoo`)
 - Generates `/usr/local/etc/suricata/rules/file-extract.rules`
 - Ensures `file-extract.rules` is enabled in IDS
-- Enables required IDS prerequisites (EVE syslog + EVE HTTP + EVE files + file-store)
+- Mirrors into IDS only **EVE fileinfo (files)** and **file-store** from the plugin (syslog + HTTP are step 2b above)
 - Runs `configctl ids reload` (reload IDS rules)
 - Restarts the `suricata2cuckoo` service
 
@@ -95,6 +100,29 @@ service suricata2cuckoo restart
 
 - **`ERROR: config not found: …/suricata2cuckoo.conf`** — the daemon config is written by the OPNsense template when **Apply** succeeds in **Services → Suricata2Cuckoo** (plugin must be **enabled**). Manually: `configctl template reload OPNsense/Suricata2Cuckoo`. The `dev-install.sh` script runs this reload at the end of an install.
 - **Empty `/var/log/suricata/filestore/`** — expected until there is matching traffic and Suricata extracts at least one file.
+
+## Diagnose `suricata2cuckoo` (shell)
+
+On the firewall as **root**, run:
+
+```sh
+sysrc suricata2cuckoo_enable
+service suricata2cuckoo status
+ls -la /usr/local/etc/rc.d/suricata2cuckoo /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf
+tail -n 80 /var/log/suricata2cuckoo.log
+ls -la /var/run/suricata2cuckoo.pid 2>/dev/null; pgrep -af suricata2cuckoo
+ls -la /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+/usr/local/sbin/configctl suricata2cuckoo apply
+perl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
+```
+
+Foreground test (runs until you press Ctrl+C; useful to see Perl errors on the terminal):
+
+```sh
+/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf
+```
+
+If `configctl … apply` fails, confirm **configd** picked up the actions file: `service configd restart` after copying `actions_suricata2cuckoo.conf`, and that `apply.php` is executable (`chmod 0755`).
 
 ## Developer install (no package, for testing)
 

@@ -63,5 +63,6 @@ echo
 echo "OK: Suricata2Cuckoo dev files installed."
 echo "Next:"
 echo "  1) Services -> Intrusion Detection -> Settings: enable IDS, pick interfaces, Apply"
-echo "  2) Services -> Suricata2Cuckoo: configure + Apply"
-echo "  3) If you change IDS settings later, click Apply in Suricata2Cuckoo once afterwards"
+echo "  2) Services -> Intrusion Detection -> Administration: enable EVE syslog + EVE HTTP, Apply"
+echo "  3) Services -> Suricata2Cuckoo: configure + Apply"
+echo "  4) If you change IDS settings later, click Apply in Suricata2Cuckoo once afterwards"

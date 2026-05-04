@@ -22,16 +22,6 @@
   </field>
 
   <field>
-    <id>suricata2cuckoo.general.EnableEveSyslog</id>
-    <label>Enable EVE syslog output</label>
-    <type>checkbox</type>
-  </field>
-  <field>
-    <id>suricata2cuckoo.general.EnableEveHttp</id>
-    <label>Enable EVE HTTP logging</label>
-    <type>checkbox</type>
-  </field>
-  <field>
     <id>suricata2cuckoo.general.EnableEveFiles</id>
     <label>Enable EVE fileinfo (files)</label>
     <type>checkbox</type>
