@@ -32,6 +32,7 @@ This repository contains an OPNsense plugin that:
    - Click **Apply**
 
 What “Apply” does:
+- Renders `/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf` from the OPNsense template (`configctl template reload OPNsense/Suricata2Cuckoo`)
 - Generates `/usr/local/etc/suricata/rules/file-extract.rules`
 - Ensures `file-extract.rules` is enabled in IDS
 - Enables required IDS prerequisites (EVE syslog + EVE HTTP + EVE files + file-store)
@@ -47,6 +48,7 @@ Important:
 1. Generate traffic that contains a file (HTTP is the easiest)
 2. Check Suricata filestore:
    - Shell: `ls -la /var/log/suricata/filestore/`
+   - Hash-style subdirs (e.g. `00/ff/`) only appear after Suricata has stored at least one file; the directory may be empty until then
 3. Check IDS EVE log has fileinfo events:
    - Shell: `tail -f /var/log/suricata/eve.json | grep fileinfo`
 4. Check suricata2cuckoo logs:
@@ -89,6 +91,11 @@ If you want to restart manually:
 service suricata2cuckoo restart
 ```
 
+## Common issues
+
+- **`ERROR: config not found: …/suricata2cuckoo.conf`** — the daemon config is written by the OPNsense template when **Apply** succeeds in **Services → Suricata2Cuckoo** (plugin must be **enabled**). Manually: `configctl template reload OPNsense/Suricata2Cuckoo`. The `dev-install.sh` script runs this reload at the end of an install.
+- **Empty `/var/log/suricata/filestore/`** — expected until there is matching traffic and Suricata extracts at least one file.
+
 ## Developer install (no package, for testing)
 
 This installs the plugin files directly onto an OPNsense host (use only for development/testing).
@@ -104,6 +111,7 @@ sh /root/dev-install.sh
 
 Notes:
 - The script clones/updates the repo under `/root/OPNsenseSuricata2cuckooPlugin` (not `/tmp`, because `/tmp` may be cleared on reboot).
+- After copying files it runs `configctl template reload OPNsense/Suricata2Cuckoo` so `suricata2cuckoo.conf` exists (if that fails, open the plugin in the GUI once and click **Apply** with the plugin enabled).
 - If you prefer manual steps, use the section below.
 
 ### 1) Install prerequisites
@@ -147,6 +155,9 @@ rm -f /tmp/opnsense_menu_cache.xml
 
 # clear mvc view cache (safe)
 rm -f /usr/local/opnsense/mvc/app/cache/*.php
+
+# daemon config (otherwise service suricata2cuckoo start complains the file is missing)
+configctl template reload OPNsense/Suricata2Cuckoo
 ```
 
 Now log out/in to the web UI (or hard refresh the browser).

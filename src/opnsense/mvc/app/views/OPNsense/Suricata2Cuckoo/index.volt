@@ -166,6 +166,7 @@ $(document).ready(function() {
       <li>{{ lang._('"EVE HTTP logging" is recommended when you expect HTTP downloads; "EVE syslog output" is optional (remote logging).') }}</li>
       <li>{{ lang._('Set Protocols and File extensions to match your traffic, then Apply. If you change IDS settings elsewhere, open this page and Apply once more.') }}</li>
       <li>{{ lang._('Daemon log (startup/errors/submissions) is written to /var/log/suricata2cuckoo.log — not the IDS log viewer.') }}</li>
+      <li>{{ lang._('Under filestore, Suricata only creates subfolders (e.g. two hex levels) after a file is actually extracted — an empty directory until matching traffic exists.') }}</li>
     </ul>
   </div>
   <div class="help-block">

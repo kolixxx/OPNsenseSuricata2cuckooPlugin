@@ -48,6 +48,17 @@ service configd restart
 rm -f /tmp/opnsense_menu_cache.xml
 rm -f /usr/local/opnsense/mvc/app/cache/*.php
 
+echo "Rendering /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf from template..." >&2
+if [ -x /usr/local/sbin/configctl ]; then
+  if /usr/local/sbin/configctl template reload OPNsense/Suricata2Cuckoo; then
+    echo "Template OK." >&2
+  else
+    echo "WARNING: template reload failed — open Services -> Suricata2Cuckoo, enable plugin, Save + Apply once." >&2
+  fi
+else
+  echo "WARNING: configctl not found; create config via GUI Apply." >&2
+fi
+
 echo
 echo "OK: Suricata2Cuckoo dev files installed."
 echo "Next:"

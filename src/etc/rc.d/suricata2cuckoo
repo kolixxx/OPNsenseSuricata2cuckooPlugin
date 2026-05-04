@@ -29,6 +29,8 @@ suricata2cuckoo_start()
   fi
   if [ ! -f "${config}" ]; then
     echo "ERROR: config not found: ${config}"
+    echo "Hint: /usr/local/sbin/configctl template reload OPNsense/Suricata2Cuckoo"
+    echo "   or Services -> Suricata2Cuckoo -> Save + Apply (plugin enabled)."
     return 1
   fi
 

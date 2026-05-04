@@ -32,6 +32,7 @@
    - Нажмите **Apply**
 
 Что делает “Apply”:
+- Рендерит `/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf` из шаблона OPNsense (`configctl template reload OPNsense/Suricata2Cuckoo`)
 - Генерирует `/usr/local/etc/suricata/rules/file-extract.rules`
 - Убеждается, что `file-extract.rules` включён в IDS
 - Включает необходимые prerequisites IDS (EVE syslog + EVE HTTP + EVE files + file-store)
@@ -47,6 +48,7 @@
 1. Сгенерируйте трафик с передачей файла (самое простое — HTTP)
 2. Проверьте filestore Suricata:
    - Shell: `ls -la /var/log/suricata/filestore/`
+   - Подкаталоги в стиле `00/ff/` появляются только после первого успешно извлечённого файла; до этого каталог может быть пустым
 3. Проверьте, что в EVE появляются fileinfo-события:
    - Shell: `tail -f /var/log/suricata/eve.json | grep fileinfo`
 4. Проверьте логи `suricata2cuckoo`:
@@ -89,6 +91,11 @@ perl -MIO::KQueue -e 'print "IO::KQueue available\n"'
 service suricata2cuckoo restart
 ```
 
+## Частые проблемы
+
+- **`ERROR: config not found: …/suricata2cuckoo.conf`** — конфиг не создаётся «сам по себе»: его пишет шаблон при успешном **Apply** в **Services → Suricata2Cuckoo** (плагин должен быть **включён**). Вручную: `configctl template reload OPNsense/Suricata2Cuckoo`. Скрипт `dev-install.sh` после установки пытается выполнить этот reload автоматически.
+- **Пустой `/var/log/suricata/filestore/`** — нормально, пока не было трафика с файлами, попадающими под ваши правила/расширения и пока Suricata не извлекла ни одного файла.
+
 ## Установка для разработки (без пакета, для тестов)
 
 Это dev-установка: файлы плагина копируются напрямую на OPNsense (только для разработки/тестов).
@@ -104,6 +111,7 @@ sh /root/dev-install.sh
 
 Замечания:
 - Скрипт клонирует/обновляет репозиторий в `/root/OPNsenseSuricata2cuckooPlugin` (не в `/tmp`, потому что `/tmp` может очищаться после перезагрузки).
+- После копирования файлов выполняется `configctl template reload OPNsense/Suricata2Cuckoo`, чтобы появился `suricata2cuckoo.conf` (если reload не удался — один раз откройте плагин в GUI и нажмите **Apply** с включённым плагином).
 - Если хотите вручную — используйте блок ниже.
 
 ### 1) Установить зависимости
@@ -147,6 +155,9 @@ rm -f /tmp/opnsense_menu_cache.xml
 
 # кэш шаблонов MVC (безопасно)
 rm -f /usr/local/opnsense/mvc/app/cache/*.php
+
+# конфиг демона (иначе service suricata2cuckoo start ругается на отсутствие файла)
+configctl template reload OPNsense/Suricata2Cuckoo
 ```
 
 После этого выйдите/войдите в web UI (или сделайте hard refresh в браузере).
