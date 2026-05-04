@@ -103,6 +103,19 @@ service suricata2cuckoo restart
 
 ## Diagnose `suricata2cuckoo` (shell)
 
+### Recommended: one bundled script (full report)
+
+On the firewall as **root** (after `dev-install.sh` or copying `src/opnsense/`):
+
+```sh
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
+sh /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
+```
+
+Paste the **complete** output when asking for help — it shows the `rc.d` `daemon` line (**must** include **`perl`** and **`--no-fork`**), Perl modules, filestore dir, a short foreground test, `service start` exit code, pid/log presence, and syslog tail.
+
+### Manual quick checks
+
 On the firewall as **root**, run:
 
 The daemon logs normal operation via **syslog** (program `suricata2cuckoo`): **System → Log Files → General** or `grep suricata2cuckoo /var/log/system.log` (exact log paths vary by release). **`/var/log/suricata2cuckoo.log`** is written by **daemon(8)** for early Perl `warn`/`die` output once `rc.d` passes **`--no-fork`** (avoids a double-fork that broke pidfiles).
@@ -121,7 +134,7 @@ perl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 Foreground test (runs until you press Ctrl+C; useful to see Perl errors on the terminal):
 
 ```sh
-/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf
+/usr/local/bin/perl /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf --no-fork
 ```
 
 If `configctl … apply` fails, confirm **configd** picked up the actions file: `service configd restart` after copying `actions_suricata2cuckoo.conf`, and that `apply.php` is executable (`chmod 0755`).
@@ -178,6 +191,7 @@ chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
 chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
 ```
 

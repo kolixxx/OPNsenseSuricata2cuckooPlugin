@@ -39,7 +39,7 @@ suricata2cuckoo_start()
   # Do NOT use -f (foreground), otherwise daemon may not create pidfile.
   # Perl script must use --no-fork: it otherwise daemonize()s internally (second fork),
   # the supervised PID exits, pidfile breaks, STDERR is duped to /dev/null, and the log file stays empty.
-  /usr/sbin/daemon -p "${pidfile}" -o "${logfile}" -t "${name}" "${script}" -c "${config}" --no-fork
+  /usr/sbin/daemon -p "${pidfile}" -o "${logfile}" -t "${name}" /usr/local/bin/perl "${script}" -c "${config}" --no-fork
 }
 
 suricata2cuckoo_stop()

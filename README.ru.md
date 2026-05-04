@@ -103,6 +103,19 @@ service suricata2cuckoo restart
 
 ## Диагностика `suricata2cuckoo` (терминал)
 
+### Рекомендуется: один скрипт (полный отчёт)
+
+На firewall под **root** (после `dev-install.sh` или ручного копирования `src/opnsense/`):
+
+```sh
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
+sh /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
+```
+
+Сохраните **весь вывод** целиком — по нему видно: строку `daemon` в `rc.d` (должны быть **`perl`** и **`--no-fork`**), модули Perl, каталог filestore, 4‑секундный тест в переднем плане, код выхода `service start`, наличие pid/log и хвост syslog.
+
+### Вручную (коротко)
+
 На firewall под **root**:
 
 Сообщения демона в основном идут в **syslog** (программа `suricata2cuckoo`): **System → Log Files → General** или `grep suricata2cuckoo /var/log/system.log` (имя файла лога на разных версиях может отличаться). Файл **`/var/log/suricata2cuckoo.log`** создаётся **daemon(8)** и в нём видны в основном ошибки до syslog и вывод `warn`/`die` из Perl (после исправления `rc.d` с `--no-fork`).
@@ -121,7 +134,7 @@ perl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 Запуск в переднем плане (пока не остановите Ctrl+C — видны ошибки Perl в терминале):
 
 ```sh
-/usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf
+/usr/local/bin/perl /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf --no-fork
 ```
 
 Если `configctl … apply` падает: после копирования `actions_suricata2cuckoo.conf` сделайте `service configd restart` и проверьте `chmod 0755` на `apply.php`.
@@ -178,6 +191,7 @@ chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
 chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
 ```
 

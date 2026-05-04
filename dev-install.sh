@@ -47,6 +47,7 @@ chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/diagnose.sh
 chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf 2>/dev/null || true
 
 echo "Restarting configd + clearing caches..." >&2
