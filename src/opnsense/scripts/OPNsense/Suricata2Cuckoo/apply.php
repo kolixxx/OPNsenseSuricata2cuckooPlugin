@@ -203,6 +203,66 @@ function sx_set(\SimpleXMLElement $parent, string $name, string $value): void
     $el->appendChild($el->ownerDocument->createTextNode($v));
 }
 
+/**
+ * Find the Intrusion Detection config subtree under <opnsense>.
+ * Some installations use <OPNsense><ids> (lowercase) while others use <IDS>; SimpleXML
+ * treats those as different nodes — writing only to <IDS> leaves the GUI reading <ids> unchanged.
+ *
+ * @return array{0:\SimpleXMLElement,1:string} IDS root element and a short label for diagnostics
+ */
+function locate_opnsense_ids_section(\SimpleXMLElement $cfgRoot): array
+{
+    foreach (['//OPNsense/IDS', '//OPNsense/ids'] as $xp) {
+        $hits = $cfgRoot->xpath($xp);
+        if ($hits !== false && isset($hits[0])) {
+            return [$hits[0], $xp];
+        }
+    }
+
+    $opnsenseWrap = null;
+    foreach ($cfgRoot->children() as $ch) {
+        if (strcasecmp($ch->getName(), 'OPNsense') === 0) {
+            $opnsenseWrap = $ch;
+            break;
+        }
+    }
+    if ($opnsenseWrap !== null) {
+        $candidates = [];
+        foreach ($opnsenseWrap->children() as $ch) {
+            if (strcasecmp($ch->getName(), 'IDS') === 0) {
+                $candidates[] = $ch;
+            }
+        }
+        if (count($candidates) === 1) {
+            $n = $candidates[0]->getName();
+
+            return [$candidates[0], 'OPNsense/' . $n];
+        }
+        if (count($candidates) > 1) {
+            // Prefer the branch that already has IDS "general" data (avoid a stale empty duplicate).
+            usort($candidates, function (\SimpleXMLElement $a, \SimpleXMLElement $b): int {
+                $sa = isset($a->general) ? count($a->general->xpath('.//*')) : 0;
+                $sb = isset($b->general) ? count($b->general->xpath('.//*')) : 0;
+
+                return $sb <=> $sa;
+            });
+
+            return [$candidates[0], 'OPNsense/' . $candidates[0]->getName() . ' (picked among duplicates)'];
+        }
+    }
+
+    foreach ($cfgRoot->children() as $ch) {
+        if (strcasecmp($ch->getName(), 'IDS') === 0) {
+            return [$ch, $ch->getName()];
+        }
+    }
+
+    $wrap = $opnsenseWrap ?? sx_child($cfgRoot, 'OPNsense');
+    $ids = sx_child($wrap, 'IDS');
+
+    return [$ids, 'OPNsense/IDS (created)'];
+}
+
 function patch_suricata_yaml_for_filestore($path)
 {
     if (!is_readable($path)) {
@@ -337,8 +397,8 @@ try {
     rename($tmp, FILE_EXTRACT_RULES);
     @chmod(FILE_EXTRACT_RULES, 0644);
 
-    // Ensure IDS contains file-extract.rules in <OPNsense><IDS><files>
-    $ids = sx_child($cfg->OPNsense, 'IDS');
+    // Ensure IDS contains file-extract.rules in <OPNsense><IDS><files> (or legacy <ids>)
+    [$ids, $idsSectionLabel] = locate_opnsense_ids_section($cfg);
     $idsFiles = sx_child($ids, 'files');
 
     $found = false;
@@ -423,6 +483,7 @@ try {
 
     echo json_encode([
         'result' => 'ok',
+        'ids_xml_section' => $idsSectionLabel,
         'ids_reload' => ['rc' => $rcIds, 'out' => $outIds],
         'ids_restart' => ['rc' => $rcIdsRestart, 'out' => $outIdsRestart],
         'suricata_yaml_file_store_enabled' => $yamlState,
