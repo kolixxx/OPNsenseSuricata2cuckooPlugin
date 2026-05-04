@@ -117,11 +117,13 @@ $(document).ready(function() {
   });
 
   $("#applyAct").click(function(){
-    $("#applyResult").addClass("hidden").text("");
+    $("#applyResult").addClass("hidden");
+    $("#applyResultBody").text("");
     $("#applyAct").prop("disabled", true).text("Applying…");
     saveFormToEndpoint("/api/suricata2cuckoo/settings/set",'frm_GeneralSettings', function(){
       ajaxCall(url="/api/suricata2cuckoo/service/apply", sendData={}, callback=function(data,status) {
-        $("#applyResult").removeClass("hidden").text(prettyJson(data));
+        $("#applyResult").removeClass("hidden");
+        $("#applyResultBody").text(prettyJson(data));
         $("#applyAct").prop("disabled", false).text("Apply");
         ajaxCall(url="/api/suricata2cuckoo/service/status", sendData={}, callback=function(d,s) {
           if (d && d.status !== undefined) {
@@ -135,7 +137,8 @@ $(document).ready(function() {
 
   $("#restartAct").click(function(){
     ajaxCall(url="/api/suricata2cuckoo/service/restart", sendData={}, callback=function(data,status) {
-      $("#applyResult").removeClass("hidden").text(prettyJson(data));
+      $("#applyResult").removeClass("hidden");
+      $("#applyResultBody").text(prettyJson(data));
       ajaxCall(url="/api/suricata2cuckoo/service/status", sendData={}, callback=function(d,s) {
         if (d && d.status !== undefined) {
           $("#svcStatus").text(d.status);
@@ -166,6 +169,7 @@ $(document).ready(function() {
       <li>{{ lang._('"EVE HTTP logging" is recommended when you expect HTTP downloads; "EVE syslog output" is optional (remote logging).') }}</li>
       <li>{{ lang._('Set Protocols and File extensions to match your traffic, then Apply. If you change IDS settings elsewhere, open this page and Apply once more.') }}</li>
       <li>{{ lang._('Daemon log (startup/errors/submissions) is written to /var/log/suricata2cuckoo.log — not the IDS log viewer.') }}</li>
+      <li>{{ lang._('In IDS, the checkbox directly under "Enable eve HTTP logging" is usually "Eve HTTP extended logging" — the plugin does not toggle that. The four prerequisite checkboxes on this page are what Apply mirrors into IDS (syslog EVE, HTTP, fileinfo/files, file-store) when those nodes exist in config.') }}</li>
       <li>{{ lang._('Under filestore, Suricata only creates subfolders (e.g. two hex levels) after a file is actually extracted — an empty directory until matching traffic exists.') }}</li>
     </ul>
   </div>
@@ -177,7 +181,10 @@ $(document).ready(function() {
 <div class="hidden alert alert-success" id="saveNotice">
   Settings saved.
 </div>
-<div class="hidden alert alert-default" id="applyResult"></div>
+<div class="hidden alert alert-info" id="applyResult" style="margin-top:10px;">
+  <strong>{{ lang._('Last apply / restart response') }}</strong>
+  <pre id="applyResultBody" style="margin:8px 0 0 0; white-space:pre-wrap; max-height:280px; overflow:auto; font-size:12px; background:transparent; border:none; padding:0;"></pre>
+</div>
 
 {{ partial("layout_partials/base_form",['fields':generalForm,'id':'frm_GeneralSettings'])}}
 
