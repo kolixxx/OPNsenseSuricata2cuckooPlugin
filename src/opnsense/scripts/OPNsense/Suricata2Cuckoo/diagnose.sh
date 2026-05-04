@@ -93,11 +93,17 @@ echo "---------- 10) tail daemon log (if any) ----------"
 tail -40 "$LOGF" 2>&1 || echo "(no $LOGF)"
 echo
 
-echo "---------- 11) syslog lines (system.log) ----------"
-if [ -f /var/log/system.log ]; then
-  grep -i suricata2cuckoo /var/log/system.log 2>/dev/null | tail -25 || echo "(no matches)"
-else
-  echo "no /var/log/system.log — check GUI Log Files"
+echo "---------- 11) syslog lines (common log files) ----------"
+FOUND=0
+for f in /var/log/system.log /var/log/messages /var/log/all.log; do
+  if [ -f "$f" ]; then
+    echo "--- grep in $f ---"
+    grep -i suricata2cuckoo "$f" 2>/dev/null | tail -25 || echo "(no matches)"
+    FOUND=1
+  fi
+done
+if [ "$FOUND" -eq 0 ]; then
+  echo "No known log file — use GUI System → Log Files, or: ls /var/log/*.log"
 fi
 echo
 

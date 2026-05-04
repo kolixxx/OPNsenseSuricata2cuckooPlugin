@@ -98,6 +98,7 @@ service suricata2cuckoo restart
 
 ## Common issues
 
+- **`Execute error`** from **`configctl suricata2cuckoo apply`** when **`/usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf`** is missing — for dev installs this file must come from **`src/etc/configd/actions.d/`** (included in `cp -a src/etc/* /usr/local/etc/`). Then run **`service configd restart`**. A duplicate also lives under `src/opnsense/service/conf/actions.d/` for official `plugins.mk` packaging.
 - **`ERROR: config not found: …/suricata2cuckoo.conf`** — the daemon config is written by the OPNsense template when **Apply** succeeds in **Services → Suricata2Cuckoo** (plugin must be **enabled**). Manually: `configctl template reload OPNsense/Suricata2Cuckoo`. The `dev-install.sh` script runs this reload at the end of an install.
 - **Empty `/var/log/suricata/filestore/`** — expected until there is matching traffic and Suricata extracts at least one file.
 

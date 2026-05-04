@@ -40,7 +40,7 @@ function ensure_apply_runtime_ok(): void
     if (!is_file(CONFIGD_ACTIONS)) {
         throw new \RuntimeException(
             "Missing configd actions file: " . CONFIGD_ACTIONS .
-            " (copy src/opnsense/service/conf/actions.d/actions_suricata2cuckoo.conf and run: service configd restart)"
+            " (copy src/etc/configd/actions.d/actions_suricata2cuckoo.conf to /usr/local/etc/configd/actions.d/ and run: service configd restart)"
         );
     }
 }

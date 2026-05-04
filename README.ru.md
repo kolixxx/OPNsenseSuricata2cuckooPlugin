@@ -98,6 +98,7 @@ service suricata2cuckoo restart
 
 ## Частые проблемы
 
+- **`Execute error`** при **`configctl suricata2cuckoo apply`** и отсутствие **`/usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf`** — для dev-установки файл должен оказаться из **`src/etc/configd/actions.d/`** (копируется вместе с `cp -a src/etc/* /usr/local/etc/`). После копирования: **`service configd restart`**. В репозитории дубликат также лежит под `src/opnsense/service/conf/actions.d/` (для сборки пакета через `plugins.mk`).
 - **`ERROR: config not found: …/suricata2cuckoo.conf`** — конфиг не создаётся «сам по себе»: его пишет шаблон при успешном **Apply** в **Services → Suricata2Cuckoo** (плагин должен быть **включён**). Вручную: `configctl template reload OPNsense/Suricata2Cuckoo`. Скрипт `dev-install.sh` после установки пытается выполнить этот reload автоматически.
 - **Пустой `/var/log/suricata/filestore/`** — нормально, пока не было трафика с файлами, попадающими под ваши правила/расширения и пока Suricata не извлекла ни одного файла.
 
