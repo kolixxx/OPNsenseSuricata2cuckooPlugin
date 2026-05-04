@@ -154,10 +154,20 @@ $(document).ready(function() {
 <div class="alert alert-info">
   <strong>Status:</strong> <span id="svcStatus">loading…</span>
   <div class="help-block">
-    Apply will generate <code>/usr/local/etc/suricata/rules/file-extract.rules</code>, enable required IDS prerequisites and reload IDS rules.
+    {{ lang._('Apply generates') }} <code>/usr/local/etc/suricata/rules/file-extract.rules</code>,
+    {{ lang._('writes the four IDS prerequisite flags from this form into Intrusion Detection, reloads IDS rules, and restarts Suricata and this service.') }}
   </div>
   <div class="help-block">
-    Reserved local SID range: <code>1000001–1000999</code>.
+    <strong>{{ lang._('Minimum for correct file extraction → Cuckoo') }}</strong>
+    <ul style="margin-top:0.5em; margin-bottom:0; padding-left:1.2em;">
+      <li>{{ lang._('IDS: Suricata enabled and running on the interface(s) where traffic is inspected.') }}</li>
+      <li>{{ lang._('Keep enabled: "Enable file-store output" and "Enable EVE fileinfo (files)" — the daemon only uploads what Suricata writes under the filestore path.') }}</li>
+      <li>{{ lang._('"EVE HTTP logging" is recommended when you expect HTTP downloads; "EVE syslog output" is optional (remote logging).') }}</li>
+      <li>{{ lang._('Set Protocols and File extensions to match your traffic, then Apply. If you change IDS settings elsewhere, open this page and Apply once more.') }}</li>
+    </ul>
+  </div>
+  <div class="help-block">
+    {{ lang._('Reserved local SID range:') }} <code>1000001–1000999</code>
   </div>
 </div>
 
