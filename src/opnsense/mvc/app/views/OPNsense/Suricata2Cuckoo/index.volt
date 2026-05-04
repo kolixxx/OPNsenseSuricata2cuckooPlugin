@@ -8,6 +8,22 @@ $(document).ready(function() {
     try { return JSON.stringify(obj, null, 2); } catch (e) { return String(obj); }
   }
 
+  function repairWatchMethodDropdown() {
+    var $s = $('select[id="suricata2cuckoo.general.WatchMethod"]');
+    if ($s.length === 0 || $s.find('option').length >= 2) {
+      return;
+    }
+    var cur = $s.val() || 'polling';
+    $s.empty();
+    $s.append($('<option/>').val('polling').text('Polling (works on all platforms)'));
+    $s.append($('<option/>').val('kqueue').text('kqueue (BSD only; requires IO::KQueue Perl module)'));
+    $s.val(cur === 'kqueue' ? 'kqueue' : 'polling');
+    if ($s.parent().hasClass('bootstrap-select')) {
+      $s.selectpicker('refresh');
+    }
+    $s.trigger('change');
+  }
+
   function initProtocolsPopover() {
     var $f = $('input[id="suricata2cuckoo.general.Protocols"]');
     if ($f.length === 0) {
@@ -53,6 +69,7 @@ $(document).ready(function() {
 
   mapDataToFormUI({'frm_GeneralSettings':"/api/suricata2cuckoo/settings/get"}).done(function() {
     initProtocolsPopover();
+    repairWatchMethodDropdown();
     ajaxCall(url="/api/suricata2cuckoo/service/status", sendData={}, callback=function(data,status) {
       if (data && data.status !== undefined) {
         $("#svcStatus").text(data.status);
