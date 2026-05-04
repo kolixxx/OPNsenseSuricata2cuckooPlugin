@@ -46,12 +46,21 @@ echo "Setting permissions..." >&2
 chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
 chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf 2>/dev/null || true
 
 echo "Restarting configd + clearing caches..." >&2
 service configd restart
 rm -f /tmp/opnsense_menu_cache.xml
 rm -f /usr/local/opnsense/mvc/app/cache/*.php
+
+mkdir -p /usr/local/etc/suricata2cuckoo
+echo "Ensuring suricata2cuckoo defaults in config.xml (so the template can render)..." >&2
+if /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php; then
+  :
+else
+  echo "WARNING: ensure_config_defaults.php failed — open Suricata2Cuckoo in the GUI once and Save." >&2
+fi
 
 echo "Rendering /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf from template..." >&2
 if [ -x /usr/local/sbin/configctl ]; then

@@ -124,6 +124,8 @@ perl -c /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 
 Если `configctl … apply` падает: после копирования `actions_suricata2cuckoo.conf` сделайте `service configd restart` и проверьте `chmod 0755` на `apply.php`.
 
+Если **`suricata2cuckoo.conf` нет**, а в GUI плагин ещё ни разу не сохраняли: выполните **`chmod 0755`** на `ensure_config_defaults.php`, затем **`/usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php`** и снова **`configctl template reload OPNsense/Suricata2Cuckoo`** (в свежем `dev-install.sh` это делается автоматически).
+
 ## Установка для разработки (без пакета, для тестов)
 
 Это dev-установка: файлы плагина копируются напрямую на OPNsense (только для разработки/тестов).
@@ -139,6 +141,7 @@ sh /root/dev-install.sh
 
 Замечания:
 - Скрипт клонирует/обновляет репозиторий в `/root/OPNsenseSuricata2cuckooPlugin` (не в `/tmp`, потому что `/tmp` может очищаться после перезагрузки).
+- Скрипт вызывает **`ensure_config_defaults.php`**: если в `config.xml` ещё не было секции плагина (ни разу не открывали GUI), без этого шаблон **не создаёт** `suricata2cuckoo.conf`. После установки проверьте: `ls -la /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf`.
 - Если при строке `Rendering … suricata2cuckoo.conf` в терминале мелькнёт отдельное **`ERR`**, это часто сообщение **configd** на stderr (шум при рестарте или предупреждение другого шаблона), а не обязательно сбой нашего шага. Ориентир: дальше должно быть **`Template OK`**, а файл **`/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf`** существует и не пустой (`ls -la`). Подробности при сомнении: `opnsense-log configd` или `/var/log/configd/latest.log`.
 - **Важно:** на firewall копируется то, что лежит **на GitHub** в `REPO_URL` (по умолчанию `kolixxx/OPNsenseSuricata2cuckooPlugin`), после `git pull`. Локальная папка на Windows/Mac **не участвует**, пока вы не сделали `git push` в этот репозиторий (или не указали свой форк: `REPO_URL=https://github.com/ВЫ/Репо.git sh /root/dev-install.sh`). В конце установки скрипт печатает строку `Using plugin git commit: …` — по ней видно, какая версия реально установлена.
 - После копирования файлов выполняется `configctl template reload OPNsense/Suricata2Cuckoo`, чтобы появился `suricata2cuckoo.conf` (если reload не удался — один раз откройте плагин в GUI и нажмите **Apply** с включённым плагином).
@@ -172,6 +175,7 @@ cp -a src/etc/* /usr/local/etc/
 chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
 chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
 ```
 
@@ -185,6 +189,9 @@ rm -f /tmp/opnsense_menu_cache.xml
 
 # кэш шаблонов MVC (безопасно)
 rm -f /usr/local/opnsense/mvc/app/cache/*.php
+
+mkdir -p /usr/local/etc/suricata2cuckoo
+/usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
 
 # конфиг демона (иначе service suricata2cuckoo start ругается на отсутствие файла)
 configctl template reload OPNsense/Suricata2Cuckoo

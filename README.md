@@ -124,6 +124,8 @@ Foreground test (runs until you press Ctrl+C; useful to see Perl errors on the t
 
 If `configctl … apply` fails, confirm **configd** picked up the actions file: `service configd restart` after copying `actions_suricata2cuckoo.conf`, and that `apply.php` is executable (`chmod 0755`).
 
+If **`suricata2cuckoo.conf` is missing** and you never saved the plugin in the GUI: run **`chmod 0755`** on `ensure_config_defaults.php`, then **`/usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php`**, then **`configctl template reload OPNsense/Suricata2Cuckoo`** again (current `dev-install.sh` does this automatically).
+
 ## Developer install (no package, for testing)
 
 This installs the plugin files directly onto an OPNsense host (use only for development/testing).
@@ -138,6 +140,7 @@ sh /root/dev-install.sh
 ```
 
 Notes:
+- **`ensure_config_defaults.php`** runs before the template step so `config.xml` contains a minimal `suricata2cuckoo` section even if you never opened the GUI yet (otherwise `suricata2cuckoo.conf` may not be created). Verify with `ls -la /usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf`.
 - A lone **`ERR`** line right after `Rendering … suricata2cuckoo.conf` is often **configd** stderr noise (or another template warning), not necessarily a failure of this step. If **`Template OK`** appears and `/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf` exists, you are fine. For details: `opnsense-log configd` or `/var/log/configd/latest.log`.
 - The script clones/updates the repo under `/root/OPNsenseSuricata2cuckooPlugin` (not `/tmp`, because `/tmp` may be cleared on reboot).
 - **What gets installed:** whatever `git pull` brings from `REPO_URL` (default `kolixxx/OPNsenseSuricata2cuckooPlugin` on GitHub), not files on your desktop until they are **pushed** there (or set `REPO_URL` to your fork). The script prints `Using plugin git commit: …` so you can verify the revision on the firewall.
@@ -172,6 +175,7 @@ cp -a src/etc/* /usr/local/etc/
 chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
 chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
 chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
 ```
 
@@ -185,6 +189,9 @@ rm -f /tmp/opnsense_menu_cache.xml
 
 # clear mvc view cache (safe)
 rm -f /usr/local/opnsense/mvc/app/cache/*.php
+
+mkdir -p /usr/local/etc/suricata2cuckoo
+/usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/ensure_config_defaults.php
 
 # daemon config (otherwise service suricata2cuckoo start complains the file is missing)
 configctl template reload OPNsense/Suricata2Cuckoo
