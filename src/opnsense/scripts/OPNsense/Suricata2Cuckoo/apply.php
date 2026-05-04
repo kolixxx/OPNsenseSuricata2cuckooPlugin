@@ -185,10 +185,22 @@ function sx_child($parent, $name) {
     return $parent->$name;
 }
 
-function sx_set($parent, $name, $value) {
-    $child = sx_child($parent, $name);
-    $child[0] = (string)$value;
-    return $child;
+/**
+ * Set a scalar XML leaf under $parent->$name (OPNsense BooleanField expects "0"/"1" text).
+ * SimpleXML's $node[0] = value is unreliable for empty/new nodes; use DOM text nodes.
+ */
+function sx_set(\SimpleXMLElement $parent, string $name, string $value): void
+{
+    $v = (string)$value;
+    if (!isset($parent->{$name})) {
+        $parent->addChild($name, $v);
+        return;
+    }
+    $el = dom_import_simplexml($parent->{$name});
+    while ($el->firstChild !== null) {
+        $el->removeChild($el->firstChild);
+    }
+    $el->appendChild($el->ownerDocument->createTextNode($v));
 }
 
 function patch_suricata_yaml_for_filestore($path)
@@ -262,10 +274,13 @@ function patch_suricata_yaml_for_filestore($path)
     }
 }
 
+$config = null;
 try {
     ensure_apply_runtime_ok();
 
-    $cfg = Config::getInstance()->object();
+    $config = Config::getInstance();
+    $config->lock(true);
+    $cfg = $config->object();
 
     // Read our plugin settings from config.xml
     $s2c = sx_child($cfg->OPNsense, 'suricata2cuckoo');
@@ -273,6 +288,9 @@ try {
 
     $enabled = ((string)($gen->Enabled ?? '0')) === '1';
     if (!$enabled) {
+        // Do not leave the daemon running when the plugin is turned off; rc(8) will not start it on boot.
+        sh('/usr/sbin/sysrc suricata2cuckoo_enable=NO 2>/dev/null || true');
+        sh('/usr/sbin/service suricata2cuckoo stop 2>/dev/null || true');
         echo json_encode(['result' => 'disabled']);
         exit(0);
     }
@@ -367,12 +385,15 @@ try {
     $fileStore = sx_child($idsGeneral, 'fileStore');
     sx_set($fileStore, 'enable', $enableFileStore ? '1' : '0');
 
-    // Save config with an audit log entry
-    Config::getInstance()->save([
+    // Save config with an audit log entry (must run while config is locked)
+    $config->save([
         'username' => 'suricata2cuckoo',
         'time' => microtime(true),
         'description' => 'Suricata2Cuckoo apply',
     ]);
+
+    // Allow FreeBSD rc.d to start the daemon on boot and from "service suricata2cuckoo restart".
+    sh('/usr/sbin/sysrc suricata2cuckoo_enable=YES 2>/dev/null || true');
 
     // Reload IDS rules (as validated)
     [$rcIds, $outIds] = sh('/usr/local/sbin/configctl ids reload');
@@ -413,5 +434,9 @@ try {
 } catch (\Throwable $e) {
     echo json_encode(['error' => $e->getMessage()]);
     exit(1);
+} finally {
+    if ($config !== null) {
+        $config->unlock();
+    }
 }
 

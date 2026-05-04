@@ -161,9 +161,11 @@ $(document).ready(function() {
     <strong>{{ lang._('Minimum for correct file extraction → Cuckoo') }}</strong>
     <ul style="margin-top:0.5em; margin-bottom:0; padding-left:1.2em;">
       <li>{{ lang._('IDS: Suricata enabled and running on the interface(s) where traffic is inspected.') }}</li>
+      <li>{{ lang._('For IPS (inline blocking), set Capture mode to Netmap or Divert under Services → Intrusion Detection → Settings (not PCAP-only IDS).') }}</li>
       <li>{{ lang._('Keep enabled: "Enable file-store output" and "Enable EVE fileinfo (files)" — the daemon only uploads what Suricata writes under the filestore path.') }}</li>
       <li>{{ lang._('"EVE HTTP logging" is recommended when you expect HTTP downloads; "EVE syslog output" is optional (remote logging).') }}</li>
       <li>{{ lang._('Set Protocols and File extensions to match your traffic, then Apply. If you change IDS settings elsewhere, open this page and Apply once more.') }}</li>
+      <li>{{ lang._('Daemon log (startup/errors/submissions) is written to /var/log/suricata2cuckoo.log — not the IDS log viewer.') }}</li>
     </ul>
   </div>
   <div class="help-block">

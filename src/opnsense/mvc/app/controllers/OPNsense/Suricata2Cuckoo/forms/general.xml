@@ -47,6 +47,7 @@
     <id>suricata2cuckoo.general.FilestorePath</id>
     <label>Filestore path</label>
     <type>text</type>
+    <help>Default is fine for most setups. Change only if you know Suricata is writing extracted files elsewhere.</help>
   </field>
   <field>
     <id>suricata2cuckoo.general.WatchMethod</id>

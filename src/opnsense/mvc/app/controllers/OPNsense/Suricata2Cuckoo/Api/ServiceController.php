@@ -4,6 +4,7 @@ namespace OPNsense\Suricata2Cuckoo\Api;
 
 use OPNsense\Base\ApiControllerBase;
 use OPNsense\Core\Backend;
+use OPNsense\Suricata2Cuckoo\Suricata2Cuckoo;
 
 class ServiceController extends ApiControllerBase
 {
@@ -25,6 +26,10 @@ class ServiceController extends ApiControllerBase
     public function statusAction()
     {
         try {
+            $mdl = new Suricata2Cuckoo();
+            if ((string)($mdl->general->Enabled ?? '0') !== '1') {
+                return ['status' => 'disabled (Enable Suricata2Cuckoo is off in the plugin)'];
+            }
             $backend = new Backend();
             $response = trim((string)$backend->configdRun('suricata2cuckoo status'));
             return ['status' => $response];
