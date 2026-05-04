@@ -175,7 +175,7 @@ $(document).ready(function() {
       <li>{{ lang._('For IPS (inline blocking), set Capture mode to Netmap or Divert under Services → Intrusion Detection → Settings (not PCAP-only IDS).') }}</li>
       <li>{{ lang._('Keep enabled on this page: "Enable file-store output" and "Enable EVE fileinfo (files)" — Apply writes these into IDS; the daemon only uploads what Suricata writes under the filestore path.') }}</li>
       <li>{{ lang._('Set Protocols and File extensions to match your traffic, then Apply. If you change IDS settings elsewhere, open this page and Apply once more.') }}</li>
-      <li>{{ lang._('Daemon log (startup/errors/submissions) is written to /var/log/suricata2cuckoo.log — not the IDS log viewer.') }}</li>
+      <li>{{ lang._('Routine messages use syslog (program suricata2cuckoo) — System → Log Files → General. /var/log/suricata2cuckoo.log holds daemon(8) / early Perl output after a proper service restart (rc.d uses --no-fork).') }}</li>
       <li>{{ lang._('Under filestore, Suricata only creates subfolders (e.g. two hex levels) after a file is actually extracted — an empty directory until matching traffic exists.') }}</li>
     </ul>
   </div>

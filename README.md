@@ -105,6 +105,8 @@ service suricata2cuckoo restart
 
 On the firewall as **root**, run:
 
+The daemon logs normal operation via **syslog** (program `suricata2cuckoo`): **System → Log Files → General** or `grep suricata2cuckoo /var/log/system.log` (exact log paths vary by release). **`/var/log/suricata2cuckoo.log`** is written by **daemon(8)** for early Perl `warn`/`die` output once `rc.d` passes **`--no-fork`** (avoids a double-fork that broke pidfiles).
+
 ```sh
 sysrc suricata2cuckoo_enable
 service suricata2cuckoo status

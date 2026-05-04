@@ -105,6 +105,8 @@ service suricata2cuckoo restart
 
 На firewall под **root**:
 
+Сообщения демона в основном идут в **syslog** (программа `suricata2cuckoo`): **System → Log Files → General** или `grep suricata2cuckoo /var/log/system.log` (имя файла лога на разных версиях может отличаться). Файл **`/var/log/suricata2cuckoo.log`** создаётся **daemon(8)** и в нём видны в основном ошибки до syslog и вывод `warn`/`die` из Perl (после исправления `rc.d` с `--no-fork`).
+
 ```sh
 sysrc suricata2cuckoo_enable
 service suricata2cuckoo status

@@ -37,7 +37,9 @@ suricata2cuckoo_start()
   # Start via daemon(8) to get a stable pidfile for rc.d status/stop.
   # Log to /var/log/suricata2cuckoo.log to surface startup errors.
   # Do NOT use -f (foreground), otherwise daemon may not create pidfile.
-  /usr/sbin/daemon -p "${pidfile}" -o "${logfile}" -t "${name}" "${script}" -c "${config}"
+  # Perl script must use --no-fork: it otherwise daemonize()s internally (second fork),
+  # the supervised PID exits, pidfile breaks, STDERR is duped to /dev/null, and the log file stays empty.
+  /usr/sbin/daemon -p "${pidfile}" -o "${logfile}" -t "${name}" "${script}" -c "${config}" --no-fork
 }
 
 suricata2cuckoo_stop()
