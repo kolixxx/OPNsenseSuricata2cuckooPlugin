@@ -22,9 +22,10 @@ class LogsController extends ApiControllerBase
         }
 
         $cmd = sprintf(
-            '/usr/bin/tail -n %d %s | /usr/bin/grep -i fileinfo | /usr/bin/tail -n 50',
+            '/usr/bin/tail -n %d %s | /usr/bin/grep -E %s | /usr/bin/tail -n 50',
             $lines,
-            escapeshellarg($eve)
+            escapeshellarg($eve),
+            escapeshellarg('"event_type"[[:space:]]*:[[:space:]]*"fileinfo"|"fileinfo"')
         );
 
         $out = [];

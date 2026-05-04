@@ -273,28 +273,23 @@ try {
         exit(0);
     }
 
-    // protocols (multi-select OptionField): stored as repeated nodes or csv depending on framework.
-    // Handle both: <Protocols>http</Protocols><Protocols>smtp</Protocols> OR "http,smtp"
+    // protocols: TextField "http, smtp" / "http smtp"; legacy repeated <Protocols> nodes still accepted
     $protocols = [];
     if (isset($gen->Protocols)) {
-        foreach ($gen->Protocols as $p) {
-            $p = strtolower(trim((string)$p));
-            if ($p !== '') {
-                $protocols[] = $p;
+        foreach ($gen->Protocols as $chunk) {
+            $chunk = trim((string)$chunk);
+            if ($chunk === '') {
+                continue;
             }
-        }
-    }
-    if (count($protocols) === 0) {
-        $praw = trim((string)($gen->Protocols ?? ''));
-        if ($praw !== '' && strpos($praw, ',') !== false) {
-            foreach (explode(',', $praw) as $p) {
-                $p = strtolower(trim($p));
-                if ($p !== '') {
-                    $protocols[] = $p;
+            foreach (preg_split('/[\s,]+/', $chunk) as $part) {
+                $part = strtolower(trim($part));
+                if ($part !== '') {
+                    $protocols[] = $part;
                 }
             }
         }
     }
+    $protocols = array_values(array_unique($protocols));
     if (count($protocols) === 0) {
         $protocols = ['http'];
     }

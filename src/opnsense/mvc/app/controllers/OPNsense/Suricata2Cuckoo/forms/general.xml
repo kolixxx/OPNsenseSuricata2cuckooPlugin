@@ -8,8 +8,10 @@
   <field>
     <id>suricata2cuckoo.general.Protocols</id>
     <label>Protocols</label>
-    <type>select_multiple</type>
-    <help>Select one or more Suricata app-layer protocols used for file extraction rules.</help>
+    <type>text</type>
+    <size>70</size>
+    <hint>e.g. http, smtp, ftp, smb</hint>
+    <help>Comma- or space-separated Suricata protocol keywords used in generated file-extract rules. Case does not matter; Apply lowercases them. Click the field for a quick reference (popover).</help>
   </field>
 
   <field>
@@ -49,8 +51,8 @@
   <field>
     <id>suricata2cuckoo.general.WatchMethod</id>
     <label>Watch method</label>
-    <type>select</type>
-    <help>polling works everywhere. kqueue is optional and requires IO::KQueue (see README).</help>
+    <type>dropdown</type>
+    <help>How the daemon watches the filestore directory. Only one method at a time. polling is the portable default; kqueue is described in suricata2cuckoo.pl and needs IO::KQueue.</help>
   </field>
   <field>
     <id>suricata2cuckoo.general.PollInterval</id>
