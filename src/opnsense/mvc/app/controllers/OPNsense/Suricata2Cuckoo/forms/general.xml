@@ -8,8 +8,8 @@
   <field>
     <id>suricata2cuckoo.general.Protocols</id>
     <label>Protocols</label>
-    <type>text</type>
-    <help>Comma-separated list of Suricata app-layer protocols. Example: http (or http,smtp). Supported: http,smtp,ftp,smb</help>
+    <type>select_multiple</type>
+    <help>Select one or more Suricata app-layer protocols used for file extraction rules.</help>
   </field>
 
   <field>
@@ -49,8 +49,8 @@
   <field>
     <id>suricata2cuckoo.general.WatchMethod</id>
     <label>Watch method</label>
-    <type>text</type>
-    <help>Set to polling (default) or kqueue (requires IO::KQueue).</help>
+    <type>select</type>
+    <help>polling works everywhere. kqueue is optional and requires IO::KQueue (see README).</help>
   </field>
   <field>
     <id>suricata2cuckoo.general.PollInterval</id>

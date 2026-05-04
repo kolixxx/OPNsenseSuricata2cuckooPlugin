@@ -5,6 +5,11 @@ After installation:
 - Ensure IDS is enabled and interfaces are selected in Services -> Intrusion Detection -> Settings
 - Click Apply in the Suricata2Cuckoo page
 
+Developer installs (manual copy):
+- Ensure execute bit on apply script: chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+- Ensure configd actions file exists: /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
+- Restart configd: service configd restart
+
 Optional (kqueue):
 - Install IO::KQueue via CPAN if desired (see README)
 

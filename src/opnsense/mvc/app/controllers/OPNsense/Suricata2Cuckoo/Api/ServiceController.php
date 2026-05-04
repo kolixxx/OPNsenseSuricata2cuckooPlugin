@@ -7,6 +7,21 @@ use OPNsense\Core\Backend;
 
 class ServiceController extends ApiControllerBase
 {
+    private function decodeConfigdOutput(string $raw)
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return ['result' => 'ok'];
+        }
+        if ($raw[0] === '{' || $raw[0] === '[') {
+            $decoded = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+        return ['result' => $raw];
+    }
+
     public function statusAction()
     {
         try {
@@ -23,7 +38,7 @@ class ServiceController extends ApiControllerBase
         try {
             $backend = new Backend();
             $result = trim((string)$backend->configdRun('suricata2cuckoo apply'));
-            return ['result' => $result !== '' ? $result : 'ok'];
+            return $this->decodeConfigdOutput($result);
         } catch (\Throwable $e) {
             return ['result' => 'error', 'error' => $e->getMessage()];
         }
@@ -34,7 +49,7 @@ class ServiceController extends ApiControllerBase
         try {
             $backend = new Backend();
             $result = trim((string)$backend->configdRun('suricata2cuckoo restart'));
-            return ['result' => $result !== '' ? $result : 'ok'];
+            return $this->decodeConfigdOutput($result);
         } catch (\Throwable $e) {
             return ['result' => 'error', 'error' => $e->getMessage()];
         }

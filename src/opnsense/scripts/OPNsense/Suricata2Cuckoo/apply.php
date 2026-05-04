@@ -21,9 +21,29 @@ const FILESTORE_DIR = '/var/log/suricata/filestore';
 const SURICATA2CUCKOO_CONF = '/usr/local/etc/suricata2cuckoo/suricata2cuckoo.conf';
 const SURICATA_YAML = '/usr/local/etc/suricata/suricata.yaml';
 const SURICATA_CUSTOM_YAML = '/usr/local/etc/suricata/custom.yaml';
+const CONFIGD_ACTIONS = '/usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf';
 
 const SID_BASE = 1000001;
 const SID_MAX = 1000999;
+
+function ensure_apply_runtime_ok(): void
+{
+    // Dev installs often lose +x on copied scripts; configd requires executable script actions.
+    $self = __FILE__;
+    if (is_file($self)) {
+        $mode = fileperms($self);
+        if ($mode !== false && (($mode & 0111) === 0)) {
+            @chmod($self, 0755);
+        }
+    }
+
+    if (!is_file(CONFIGD_ACTIONS)) {
+        throw new \RuntimeException(
+            "Missing configd actions file: " . CONFIGD_ACTIONS .
+            " (copy src/opnsense/service/conf/actions.d/actions_suricata2cuckoo.conf and run: service configd restart)"
+        );
+    }
+}
 
 function sh($cmd) {
     $output = [];
@@ -239,6 +259,8 @@ function patch_suricata_yaml_for_filestore($path)
 }
 
 try {
+    ensure_apply_runtime_ok();
+
     $cfg = Config::getInstance()->object();
 
     // Read our plugin settings from config.xml

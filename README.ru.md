@@ -93,6 +93,19 @@ service suricata2cuckoo restart
 
 Это dev-установка: файлы плагина копируются напрямую на OPNsense (только для разработки/тестов).
 
+### Самый простой путь: один скрипт (рекомендуется)
+
+На OPNsense под **root**:
+
+```sh
+fetch https://raw.githubusercontent.com/kolixxx/OPNsenseSuricata2cuckooPlugin/main/dev-install.sh -o /root/dev-install.sh
+sh /root/dev-install.sh
+```
+
+Замечания:
+- Скрипт клонирует/обновляет репозиторий в `/root/OPNsenseSuricata2cuckooPlugin` (не в `/tmp`, потому что `/tmp` может очищаться после перезагрузки).
+- Если хотите вручную — используйте блок ниже.
+
 ### 1) Установить зависимости
 
 ```sh
@@ -103,7 +116,7 @@ pkg install -y git p5-libwww p5-HTTP-Message p5-XML-XPath p5-File-LibMagic
 ### 2) Склонировать репозиторий
 
 ```sh
-cd /tmp
+cd /root
 rm -rf OPNsenseSuricata2cuckooPlugin
 git clone https://github.com/kolixxx/OPNsenseSuricata2cuckooPlugin.git
 cd OPNsenseSuricata2cuckooPlugin
@@ -120,6 +133,8 @@ cp -a src/etc/* /usr/local/etc/
 
 chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
 ```
 
 ### 4) Перезапустить сервисы и сбросить кэши

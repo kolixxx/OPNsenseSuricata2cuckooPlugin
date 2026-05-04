@@ -93,6 +93,19 @@ service suricata2cuckoo restart
 
 This installs the plugin files directly onto an OPNsense host (use only for development/testing).
 
+### Easiest: one script (recommended)
+
+On OPNsense as **root**:
+
+```sh
+fetch https://raw.githubusercontent.com/kolixxx/OPNsenseSuricata2cuckooPlugin/main/dev-install.sh -o /root/dev-install.sh
+sh /root/dev-install.sh
+```
+
+Notes:
+- The script clones/updates the repo under `/root/OPNsenseSuricata2cuckooPlugin` (not `/tmp`, because `/tmp` may be cleared on reboot).
+- If you prefer manual steps, use the section below.
+
 ### 1) Install prerequisites
 
 ```sh
@@ -103,7 +116,7 @@ pkg install -y git p5-libwww p5-HTTP-Message p5-XML-XPath p5-File-LibMagic
 ### 2) Clone this repository
 
 ```sh
-cd /tmp
+cd /root
 rm -rf OPNsenseSuricata2cuckooPlugin
 git clone https://github.com/kolixxx/OPNsenseSuricata2cuckooPlugin.git
 cd OPNsenseSuricata2cuckooPlugin
@@ -120,6 +133,8 @@ cp -a src/etc/* /usr/local/etc/
 
 chmod 0755 /usr/local/etc/rc.d/suricata2cuckoo
 chmod 0755 /usr/local/etc/suricata2cuckoo/suricata2cuckoo.pl
+chmod 0755 /usr/local/opnsense/scripts/OPNsense/Suricata2Cuckoo/apply.php
+chmod 0644 /usr/local/etc/configd/actions.d/actions_suricata2cuckoo.conf
 ```
 
 ### 4) Restart services and clear caches
