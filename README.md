@@ -139,6 +139,7 @@ sh /root/dev-install.sh
 
 Notes:
 - The script clones/updates the repo under `/root/OPNsenseSuricata2cuckooPlugin` (not `/tmp`, because `/tmp` may be cleared on reboot).
+- **What gets installed:** whatever `git pull` brings from `REPO_URL` (default `kolixxx/OPNsenseSuricata2cuckooPlugin` on GitHub), not files on your desktop until they are **pushed** there (or set `REPO_URL` to your fork). The script prints `Using plugin git commit: …` so you can verify the revision on the firewall.
 - After copying files it runs `configctl template reload OPNsense/Suricata2Cuckoo` so `suricata2cuckoo.conf` exists (if that fails, open the plugin in the GUI once and click **Apply** with the plugin enabled).
 - If you prefer manual steps, use the section below.
 

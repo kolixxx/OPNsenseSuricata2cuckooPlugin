@@ -139,6 +139,7 @@ sh /root/dev-install.sh
 
 Замечания:
 - Скрипт клонирует/обновляет репозиторий в `/root/OPNsenseSuricata2cuckooPlugin` (не в `/tmp`, потому что `/tmp` может очищаться после перезагрузки).
+- **Важно:** на firewall копируется то, что лежит **на GitHub** в `REPO_URL` (по умолчанию `kolixxx/OPNsenseSuricata2cuckooPlugin`), после `git pull`. Локальная папка на Windows/Mac **не участвует**, пока вы не сделали `git push` в этот репозиторий (или не указали свой форк: `REPO_URL=https://github.com/ВЫ/Репо.git sh /root/dev-install.sh`). В конце установки скрипт печатает строку `Using plugin git commit: …` — по ней видно, какая версия реально установлена.
 - После копирования файлов выполняется `configctl template reload OPNsense/Suricata2Cuckoo`, чтобы появился `suricata2cuckoo.conf` (если reload не удался — один раз откройте плагин в GUI и нажмите **Apply** с включённым плагином).
 - Если хотите вручную — используйте блок ниже.
 

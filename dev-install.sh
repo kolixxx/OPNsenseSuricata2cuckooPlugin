@@ -9,6 +9,10 @@ set -eu
 #
 # Or if you already cloned the repo:
 #   cd /root/OPNsenseSuricata2cuckooPlugin && sh ./dev-install.sh
+#
+# This copies files from the *git clone on the firewall*, not from your PC.
+# Override the remote if your changes live on a fork:
+#   REPO_URL=https://github.com/YOU/OPNsenseSuricata2cuckooPlugin.git sh /root/dev-install.sh
 
 REPO_URL="${REPO_URL:-https://github.com/kolixxx/OPNsenseSuricata2cuckooPlugin.git}"
 INSTALL_DIR="${INSTALL_DIR:-/root/OPNsenseSuricata2cuckooPlugin}"
@@ -32,6 +36,7 @@ fi
 
 echo "Updating repo..." >&2
 git -C "$INSTALL_DIR" pull --ff-only
+echo "Using plugin git commit: $(git -C "$INSTALL_DIR" rev-parse --short HEAD) $(git -C "$INSTALL_DIR" log -1 --format=%s)" >&2
 
 echo "Installing plugin files..." >&2
 cp -a "$INSTALL_DIR/src/opnsense/"* /usr/local/opnsense/
