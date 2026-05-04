@@ -34,6 +34,27 @@ $(document).ready(function() {
     });
   }
 
+  function initCuckooApiTokenReveal() {
+    var $inp = $('input[id="suricata2cuckoo.general.CuckooApiToken"]');
+    if ($inp.length === 0) {
+      return;
+    }
+    $('#cuckooApiTokenToggle').remove();
+    var $btn = $(
+      '<button type="button" class="btn btn-default btn-xs" id="cuckooApiTokenToggle" ' +
+        'title="Show or hide API token" style="margin-left:6px;vertical-align:middle">' +
+        '<i class="fa fa-eye"></i></button>'
+    );
+    $inp.after($btn);
+    $btn.on('click', function (e) {
+      e.preventDefault();
+      var isPwd = $inp.attr('type') === 'password';
+      $inp.attr('type', isPwd ? 'text' : 'password');
+      $btn.find('i').toggleClass('fa-eye', !isPwd).toggleClass('fa-eye-slash', isPwd);
+      $btn.attr('title', isPwd ? 'Hide API token' : 'Show API token');
+    });
+  }
+
   function initProtocolsPopover() {
     var $f = $('input[id="suricata2cuckoo.general.Protocols"]');
     if ($f.length === 0) {
@@ -80,6 +101,7 @@ $(document).ready(function() {
   mapDataToFormUI({'frm_GeneralSettings':"/api/suricata2cuckoo/settings/get"}).done(function() {
     initProtocolsPopover();
     initWatchMethodPopover();
+    initCuckooApiTokenReveal();
     ajaxCall(url="/api/suricata2cuckoo/service/status", sendData={}, callback=function(data,status) {
       if (data && data.status !== undefined) {
         $("#svcStatus").text(data.status);
