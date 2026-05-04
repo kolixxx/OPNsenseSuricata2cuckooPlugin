@@ -8,20 +8,30 @@ $(document).ready(function() {
     try { return JSON.stringify(obj, null, 2); } catch (e) { return String(obj); }
   }
 
-  function repairWatchMethodDropdown() {
-    var $s = $('select[id="suricata2cuckoo.general.WatchMethod"]');
-    if ($s.length === 0 || $s.find('option').length >= 2) {
+  function initWatchMethodPopover() {
+    var $f = $('input[id="suricata2cuckoo.general.WatchMethod"]');
+    if ($f.length === 0) {
       return;
     }
-    var cur = $s.val() || 'polling';
-    $s.empty();
-    $s.append($('<option/>').val('polling').text('Polling (works on all platforms)'));
-    $s.append($('<option/>').val('kqueue').text('kqueue (BSD only; requires IO::KQueue Perl module)'));
-    $s.val(cur === 'kqueue' ? 'kqueue' : 'polling');
-    if ($s.parent().hasClass('bootstrap-select')) {
-      $s.selectpicker('refresh');
-    }
-    $s.trigger('change');
+    try {
+      $f.popover('destroy');
+    } catch (e) { /* ignore */ }
+    var body =
+      '<p style="margin:0 0 .5em 0; max-width:300px;">The filestore watcher supports <strong>two</strong> method names (see <code>suricata2cuckoo.pl</code>).</p>' +
+      '<ul style="margin:0; padding-left:1.2em; max-width:300px; text-align:left; font-size:12px;">' +
+      '<li><code>polling</code> — works everywhere (default).</li>' +
+      '<li><code>kqueue</code> — BSD kqueue; needs Perl <code>IO::KQueue</code> (falls back to polling if unavailable).</li>' +
+      '<li>Case does not matter: <code>KQUEUE</code> is fine; the daemon uses <code>lc()</code>.</li>' +
+      '<li>Any other text is treated as <strong>polling</strong>.</li>' +
+      '</ul>';
+    $f.popover({
+      container: 'body',
+      placement: 'right',
+      trigger: 'focus',
+      html: true,
+      title: 'Watch method',
+      content: body
+    });
   }
 
   function initProtocolsPopover() {
@@ -69,7 +79,7 @@ $(document).ready(function() {
 
   mapDataToFormUI({'frm_GeneralSettings':"/api/suricata2cuckoo/settings/get"}).done(function() {
     initProtocolsPopover();
-    repairWatchMethodDropdown();
+    initWatchMethodPopover();
     ajaxCall(url="/api/suricata2cuckoo/service/status", sendData={}, callback=function(data,status) {
       if (data && data.status !== undefined) {
         $("#svcStatus").text(data.status);

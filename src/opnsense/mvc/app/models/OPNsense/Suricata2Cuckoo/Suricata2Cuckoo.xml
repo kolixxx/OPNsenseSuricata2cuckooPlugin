@@ -43,14 +43,10 @@
         <Default>/var/log/suricata/filestore</Default>
         <Required>Y</Required>
       </FilestorePath>
-      <WatchMethod type="OptionField">
-        <Required>Y</Required>
-        <Multiple>N</Multiple>
+      <!-- suricata2cuckoo.pl: only polling or kqueue (daemon lowercases input) -->
+      <WatchMethod type="TextField">
         <Default>polling</Default>
-        <OptionValues>
-          <polling>polling (works everywhere)</polling>
-          <kqueue>kqueue (BSD; requires IO::KQueue Perl module)</kqueue>
-        </OptionValues>
+        <Required>Y</Required>
       </WatchMethod>
       <PollInterval type="IntegerField">
         <Default>5</Default>
