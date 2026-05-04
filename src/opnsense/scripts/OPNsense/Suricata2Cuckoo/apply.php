@@ -6,7 +6,7 @@
  *
  * - Generates /usr/local/etc/suricata/rules/file-extract.rules
  * - Ensures file-extract.rules is enabled in OPNsense IDS files list
- * - Enables IDS prerequisites requested by the plugin user
+ * - Enables or disables IDS prerequisites to match the four plugin checkboxes (Apply mirrors IDS settings)
  * - Reloads IDS rules (configctl ids reload)
  * - Restarts suricata2cuckoo service
  */
@@ -98,18 +98,22 @@ function write_suricata_custom_yaml($path, bool $enableFileStore, bool $enableEv
     $lines[] = "# Managed by OPNsense Suricata2Cuckoo plugin.";
     $lines[] = "# This file is included from /usr/local/etc/suricata/suricata.yaml (include: - custom.yaml).";
     $lines[] = "";
-    $lines[] = "outputs:";
-    if ($enableFileStore) {
-        $lines[] = "  - file-store:";
-        $lines[] = "      enabled: yes";
-        $lines[] = "      version: 2";
-    }
-    if ($enableEveFiles) {
-        $lines[] = "  - eve-log:";
-        $lines[] = "      types:";
-        $lines[] = "        - files:";
-        $lines[] = "            force-magic: yes";
-        $lines[] = "            force-hash: [md5, sha256]";
+    if ($enableFileStore || $enableEveFiles) {
+        $lines[] = "outputs:";
+        if ($enableFileStore) {
+            $lines[] = "  - file-store:";
+            $lines[] = "      enabled: yes";
+            $lines[] = "      version: 2";
+        }
+        if ($enableEveFiles) {
+            $lines[] = "  - eve-log:";
+            $lines[] = "      types:";
+            $lines[] = "        - files:";
+            $lines[] = "            force-magic: yes";
+            $lines[] = "            force-hash: [md5, sha256]";
+        }
+    } else {
+        $lines[] = "# No plugin-managed outputs (file-store and EVE files disabled in Suricata2Cuckoo).";
     }
     $lines[] = "";
 
@@ -344,27 +348,24 @@ try {
     $enableEveFiles = ((string)($gen->EnableEveFiles ?? '1')) === '1';
     $enableFileStore = ((string)($gen->EnableFileStore ?? '1')) === '1';
 
-    if ($enableEveSyslog) {
-        sx_set($idsGeneral, 'syslog_eve', '1');
-    }
+    // Mirror plugin toggles into IDS (Intrusion Detection) so the main IDS UI stays consistent after Apply.
+    sx_set($idsGeneral, 'syslog_eve', $enableEveSyslog ? '1' : '0');
 
     $eveLog = sx_child($idsGeneral, 'eveLog');
     $eveHttp = sx_child($eveLog, 'http');
-    if ($enableEveHttp) {
-        sx_set($eveHttp, 'enable', '1');
-    }
+    sx_set($eveHttp, 'enable', $enableEveHttp ? '1' : '0');
 
-    // These keys may not exist in stock config.xml, but OPNsense generator may pick them up if present.
+    $eveFiles = sx_child($eveLog, 'files');
     if ($enableEveFiles) {
-        $eveFiles = sx_child($eveLog, 'files');
         sx_set($eveFiles, 'enable', '1');
         sx_set($eveFiles, 'force_magic', '1');
         sx_set($eveFiles, 'force_hash', 'md5,sha256');
+    } else {
+        sx_set($eveFiles, 'enable', '0');
     }
-    if ($enableFileStore) {
-        $fileStore = sx_child($idsGeneral, 'fileStore');
-        sx_set($fileStore, 'enable', '1');
-    }
+
+    $fileStore = sx_child($idsGeneral, 'fileStore');
+    sx_set($fileStore, 'enable', $enableFileStore ? '1' : '0');
 
     // Save config with an audit log entry
     Config::getInstance()->save([
@@ -385,10 +386,11 @@ try {
     // Restart IDS (regenerates suricata.yaml; include reference stays intact)
     [$rcIdsRestart, $outIdsRestart] = sh('/usr/local/sbin/configctl ids restart');
 
-    // Ensure file-store is enabled early enough (before rule load).
-    // custom.yaml include is near the end of suricata.yaml on some versions, which is too late
-    // to satisfy filestore rule prerequisites during rule parsing.
-    patch_suricata_yaml_for_filestore(SURICATA_YAML);
+    // When file-store is enabled: ensure main suricata.yaml has file-store enabled early enough for rule load.
+    // When disabled: do not patch (leave IDS-regenerated yaml; plugin already set fileStore enable=0 above).
+    if ($enableFileStore) {
+        patch_suricata_yaml_for_filestore(SURICATA_YAML);
+    }
 
     // Restart Suricata to pick up changes
     $yamlState = suricata_yaml_filestore_enabled_state(SURICATA_YAML);
